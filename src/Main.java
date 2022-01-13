@@ -20,40 +20,43 @@ public class Main {
 
 
     public static void main(String[] args) {
-        init();
+        board = new Board();
         while(true){
-            System.out.println(board.getDisplay(0));
+            System.out.println(board.getDisplay());
             processInput(scanner.nextLine());
             board.updateLines();
         }
     }
 
-    public static void init(){
-        for(int i = 0; i < 23; i++){
-            board.getBoard()[i] = "*          *";
-        }
-        board.getBoard()[24] = "************";
-        board.nextMino();
-    }
+
 
     public static void processInput(String input){
-        switch(input){
+        switch(input){//handles all the console inputs
             case "l":
-                TetraminoUpdater.moveX(board.getCurrentMino(), board.getBoard(), 1);
+                TetraminoUpdater.moveX(board.getCurrentMino(), board.getBoard(), -1);
                 break;
             case "r":
+                TetraminoUpdater.moveX(board.getCurrentMino(), board.getBoard(), 1);
                 break;
             case "cw":
+                TetraminoUpdater.rotate(board.getCurrentMino(), board.getBoard(), 1);
                 break;
             case "ccw":
+                TetraminoUpdater.rotate(board.getCurrentMino(), board.getBoard(), -1);
                 break;
             case "180":
+                TetraminoUpdater.rotate(board.getCurrentMino(), board.getBoard(), 2);
                 break;
             case "sd":
+                TetraminoUpdater.softDrop(board.getCurrentMino(), board.getBoard());
                 break;
             case "hd":
+                TetraminoUpdater.hardDrop(board.getCurrentMino(), board.getBoard());
+                board.nextMino();
                 break;
             case "lock"://lock
+                TetraminoUpdater.lock(board.getCurrentMino(), board.getBoard());
+                board.nextMino();
                 break;
         }
     }

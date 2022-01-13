@@ -28,10 +28,8 @@ public class TetraminoUpdater {
          *  The game checks a piece's different possible positions in order depending on the kick table
          *  If there's no collision, the piece is rotated, if there is, move on to the next
          */
-
-//        n = Math.abs(n) == 2 ? 0 : n;
-//        orientation += n;
-//        orientation = (orientation + 3) % 4 + 1;
+        orientation += n;
+        orientation = (orientation + 3) % 4 + 1;
         tetramino.updateMino(tetramino.getX(), tetramino.getY(), orientation);
     }
 
@@ -77,6 +75,7 @@ public class TetraminoUpdater {
                 return false;
             }
         }
+        tetramino.updateMino(tetramino.getX(), tetramino.getY() + n, tetramino.getOrientation());
         return true;
     }
 
@@ -86,7 +85,7 @@ public class TetraminoUpdater {
      * @param boardState modifiable boardstate
      */
     public static void softDrop(Tetramino tetramino, String[] boardState){
-
+        while(moveY(tetramino, boardState, 1));
     }
 
     /***
@@ -95,7 +94,12 @@ public class TetraminoUpdater {
      * @param boardState modifiable boardstate
      */
     public static void lock(Tetramino tetramino, String[] boardState){
-
+        System.out.println("locking");
+        for(int i = 0; i < 4; i++){
+            String line = boardState[tetramino.getCoords()[i][1]];
+            line = line.substring(0, tetramino.getCoords()[i][0]) + tetramino.getType().getMino() + line.substring(tetramino.getCoords()[i][0] + 1);
+            boardState[tetramino.getCoords()[i][1]] = line;
+        }
     }
 
     /***

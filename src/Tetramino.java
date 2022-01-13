@@ -13,6 +13,8 @@ Class description:
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -22,32 +24,39 @@ public class Tetramino {
     private int orientation; // 1 - 4, 1 being up and 2 being right
     private Type type;//Type of piece
 
-
     enum Type{
-        I,
-        T,
-        O,
-        L,
-        J,
-        S,
-        Z;
-        int[][] upCoords = new int[4][2]
-                , rightCoords = new int[4][2], downCoords = new int[4][2], leftCoords = new int[4][2];
+        O("\u001B[33m"),
+        I("\u001B[36m"),
+        T("\u001B[35m"),
+        L("\u001B[37m"),
+        J("\u001B[34m"),
+        S("\u001B[32m"),
+        Z("\u001B[31m");
+        final int[][] upCoords = new int[4][2];
+        final int[][] rightCoords = new int[4][2];
+        final int[][] downCoords = new int[4][2];
+        final int[][] leftCoords = new int[4][2];
+        final String color;
+        final String ANSI_RESET = "\u001B[0m";
 
-        Type() {
+        Type(String color) {
+            this.color = color;
             readCoords(this);
         }
         //Sets the piece coordinates for each piece
         private void readCoords(Type t) {
             Scanner scanner;
             try {
-                scanner = new Scanner(new File("tetraminoPositions.txt"));//reads from position file
-            }catch (FileNotFoundException e){
+                File file = new File("src/tetraminoPositions.txt");
+                scanner = new Scanner(file);//reads from position file
+            }catch(FileNotFoundException e){
                 return;
             }
-            scanner.skip(".*?" + t.toString());//skips to piece index
+            scanner.skip("[\\s\\S]*" + t);//skips to piece index
+            scanner.nextLine();
             for(int i = 1; i <= 4; i++){
-                scanner.skip(".*?" + i);//skips to orientation number
+                scanner.skip(Integer.toString(i));//skips to orientation number
+                scanner.nextLine();
                 int[][] coords = switch(i) {//sets the corresponding string array depending on i
                     case 1 -> upCoords;
                     case 2 -> rightCoords;
@@ -65,16 +74,20 @@ public class Tetramino {
                     }
                 }
             }
+            scanner.close();
+        }
+
+        public String getMino(){
+            return "■";
         }
     }
 
 
 
-    char c = '■';
 
     public Tetramino(Type type) {
         x = 5;
-        y = 0;
+        y = 1;
         orientation = 1;
         this.type = type;
     }
@@ -106,13 +119,13 @@ public class Tetramino {
      * @return a string array in the format {"1,2","3,3","3,2","2,2"}
      */
     public int[][] getCoords(){
-        return applyTransformation(switch(orientation){
-            case 1 -> type.upCoords;
-            case 2 -> type.rightCoords;
-            case 3 -> type.downCoords;
-            case 4 -> type.leftCoords;
-            default -> throw new IllegalStateException("Unexpected value: " + orientation);
-        });
+        return applyTransformation((switch(orientation){
+                    case 1 -> type.upCoords;
+                    case 2 -> type.rightCoords;
+                    case 3 -> type.downCoords;
+                    case 4 -> type.leftCoords;
+                    default -> throw new IllegalStateException("Unexpected value: " + orientation);
+                }).clone());
     }
 
     public int[][] applyTransformation(int[][] input){
@@ -135,7 +148,7 @@ public class Tetramino {
             int next = random.nextInt(left--);
             int index = 0;
             while(next >= 0){
-                if(used.charAt(index) == 0){
+                if(used.charAt(index) == '0'){
                     next--;
                 }
                 index++;
