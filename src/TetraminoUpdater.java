@@ -47,7 +47,7 @@ public class TetraminoUpdater {
      * @param surroundings 6x6?(maybe 4x4) area around tetramino
      * @return
      */
-    public boolean checkCollision(Tetramino tetramino, String[] surroundings){
+    public boolean checkCollision(Tetramino tetramino, String[] surroundings) {
         return false;
     }
 
@@ -57,7 +57,7 @@ public class TetraminoUpdater {
      * @param boardState current boardstate
      * @param n direction, 1 is right, -1 is left
      */
-    public void move(Tetramino tetramino, String[] boardState, int n){
+    public void move(Tetramino tetramino, String[] boardState, int n) {
 
     }
 
@@ -66,7 +66,7 @@ public class TetraminoUpdater {
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardstate
      */
-    public void softDrop(Tetramino tetramino, String[] boardState){
+    public void softDrop(Tetramino tetramino, String[] boardState) {
 
     }
 
@@ -75,7 +75,7 @@ public class TetraminoUpdater {
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardstate
      */
-    public void lock(Tetramino tetramino, String[] boardState){
+    public void lock(Tetramino tetramino, String[] boardState) {
 
     }
 
@@ -84,7 +84,7 @@ public class TetraminoUpdater {
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardstate
      */
-    public void hardDrop(Tetramino tetramino, String[] boardState){
+    public void hardDrop(Tetramino tetramino, String[] boardState) {
         softDrop(tetramino, boardState);
         lock(tetramino, boardState);
     }

@@ -22,7 +22,7 @@ public class Tetramino {
     private Type type;//Type of piece
 
 
-    enum Type{
+    enum Type {
         I,
         T,
         O,
@@ -36,18 +36,19 @@ public class Tetramino {
         Type() {
             readCoords(this);
         }
+
         //Sets the piece coordinates for each piece
         private void readCoords(Type t) {
             Scanner scanner;
             try {
                 scanner = new Scanner(new File("tetraminoPositions.txt"));//reads from position file
-            }catch (FileNotFoundException e){
+            } catch (FileNotFoundException e) {
                 return;
             }
             scanner.skip(".*?" + t.toString());//skips to piece index
-            for(int i = 1; i <= 4; i++){
+            for (int i = 1; i <= 4; i++) {
                 scanner.skip(".*?" + i);//skips to orientation number
-                String[] coords = switch(i) {//sets the corresponding string array depending on i
+                String[] coords = switch (i) {//sets the corresponding string array depending on i
                     case 1 -> upCoords;
                     case 2 -> rightCoords;
                     case 3 -> downCoords;
@@ -57,8 +58,8 @@ public class Tetramino {
                 int cur = 0;
                 for (int j = 0; j < 4; j++) {//reads through the grid and add coordinates that have a star in it to position array
                     String line = scanner.nextLine();
-                    for(int k = 0; k < 4; k++){
-                        if(line.charAt(k) == '*'){
+                    for (int k = 0; k < 4; k++) {
+                        if (line.charAt(k) == '*') {
                             coords[cur++] = k + "," + j;//TODO add offset from center
                         }
                     }
@@ -66,7 +67,6 @@ public class Tetramino {
             }
         }
     }
-
 
 
     char c = '■';
@@ -78,7 +78,7 @@ public class Tetramino {
         this.type = type;
     }
 
-    public void updateMino(int x, int y, int o){
+    public void updateMino(int x, int y, int o) {
         this.x = x;
         this.y = y;
         this.orientation = o;
@@ -104,8 +104,8 @@ public class Tetramino {
      * returns coordinate of each part of the tetramino
      * @return a string array in the format {"1,2","3,3","3,2","2,2"}
      */
-    public String[] getCoords(){
-        return switch (orientation){
+    public String[] getCoords() {
+        return switch (orientation) {
             case 1 -> type.upCoords;
             case 2 -> type.rightCoords;
             case 3 -> type.downCoords;
