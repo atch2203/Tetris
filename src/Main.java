@@ -14,8 +14,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    static String[] board = new String[24];
-    static Tetramino currentMino;
+    static Board board;
 
     static Scanner scanner = new Scanner(System.in);
 
@@ -23,24 +22,24 @@ public class Main {
     public static void main(String[] args) {
         init();
         while(true){
-            System.out.println(BoardDisplay.displayBoard(currentMino, board, 0));
+            System.out.println(board.getDisplay(0));
             processInput(scanner.nextLine());
-            BoardUpdater.updateLines(board);
+            board.updateLines();
         }
     }
 
     public static void init(){
         for(int i = 0; i < 23; i++){
-            board[i] = "*          *";
+            board.getBoard()[i] = "*          *";
         }
-        board[24] = "************";
-        currentMino = MinoGenerator.getNext();
+        board.getBoard()[24] = "************";
+        board.nextMino();
     }
 
     public static void processInput(String input){
         switch(input){
             case "l":
-                TetraminoUpdater.moveX(currentMino, board, 1);
+                TetraminoUpdater.moveX(board.getCurrentMino(), board.getBoard(), 1);
                 break;
             case "r":
                 break;
