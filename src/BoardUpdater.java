@@ -11,6 +11,10 @@ Takes in a board state and updates it by clearing any cleared lines
 
 
 public class BoardUpdater {
+    /***
+     * clears lines and adds to the score depending on how many were cleared
+     * @param boardState current boardstate, with lines not cleared yet
+     */
     public void updateLines(String[] boardState){
         int linesCleared = 0;
         for(int i = 0; i < boardState.length; i++){//clear lines
