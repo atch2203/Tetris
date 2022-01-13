@@ -11,7 +11,7 @@ Parses all the data(board state, score, next pieces, etc) and turns it into a st
  */
 
 public class BoardDisplay {
-    public String displayBoard(String[] boardState, int score){
+    public static String displayBoard(Tetramino tetramino, String[] boardState, int score){
         StringBuilder output = new StringBuilder();
         for(String s : boardState){
             output.append(s).append('\n');

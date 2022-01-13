@@ -11,4 +11,5 @@ Reads inputs from the user
 
 
 public class InputReader {
+
 }

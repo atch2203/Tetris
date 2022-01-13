@@ -30,8 +30,8 @@ public class Tetramino {
         J,
         S,
         Z;
-
-        String[] upCoords, rightCoords, downCoords, leftCoords;
+        int[][] upCoords = new int[4][2]
+                , rightCoords = new int[4][2], downCoords = new int[4][2], leftCoords = new int[4][2];
 
         Type() {
             readCoords(this);
@@ -47,7 +47,7 @@ public class Tetramino {
             scanner.skip(".*?" + t.toString());//skips to piece index
             for(int i = 1; i <= 4; i++){
                 scanner.skip(".*?" + i);//skips to orientation number
-                String[] coords = switch(i) {//sets the corresponding string array depending on i
+                int[][] coords = switch(i) {//sets the corresponding string array depending on i
                     case 1 -> upCoords;
                     case 2 -> rightCoords;
                     case 3 -> downCoords;
@@ -59,7 +59,7 @@ public class Tetramino {
                     String line = scanner.nextLine();
                     for(int k = 0; k < 4; k++){
                         if(line.charAt(k) == '*'){
-                            coords[cur++] = k + "," + j;//TODO add offset from center
+                            coords[cur++] = new int[]{(k - 1), (j - 1)};//subtraction to offset from center
                         }
                     }
                 }
@@ -104,13 +104,20 @@ public class Tetramino {
      * returns coordinate of each part of the tetramino
      * @return a string array in the format {"1,2","3,3","3,2","2,2"}
      */
-    public String[] getCoords(){
-        return switch (orientation){
+    public int[][] getCoords(){
+        return applyTransformation(switch(orientation){
             case 1 -> type.upCoords;
             case 2 -> type.rightCoords;
             case 3 -> type.downCoords;
             case 4 -> type.leftCoords;
             default -> throw new IllegalStateException("Unexpected value: " + orientation);
-        };
+        });
+    }
+
+    public int[][] applyTransformation(int[][] input){
+        for(int i = 0; i < input.length; i++){
+            input[i] = new int[]{input[i][0] + x, input[i][1] + y};
+        }
+        return input;
     }
 }
