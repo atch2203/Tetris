@@ -79,14 +79,14 @@ public class Tetramino {
         }
 
         public String getMino() {
-            return "■";
+            return "=";
         }
     }
 
 
     public Tetramino(Type type) {
         x = 5;
-        y = 1;
+        y = 2;
         orientation = 1;
         this.type = type;
     }
