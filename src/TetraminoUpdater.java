@@ -21,7 +21,6 @@ public class TetraminoUpdater {
      */
     public static void rotate(Tetramino tetramino, String[] boardState, int n) {
         int orientation = tetramino.getOrientation();
-
         /*
          * SRS kick info
          *  The game checks a piece's different possible positions in order depending on the kick table
@@ -35,10 +34,16 @@ public class TetraminoUpdater {
     /***
      *
      * @param tetramino tetramino to check
-     * @param surroundings 6x6?(maybe 4x4) area around tetramino
-     * @return
+     * @param boardState 6x6?(maybe 4x4) area around tetramino
+     * @return whether the tetramino is intersecting the board/surroundings
      */
-    public static boolean checkCollision(Tetramino tetramino, String[] surroundings) {
+    public static boolean checkCollision(Tetramino tetramino, String[] boardState) {
+        int[][] coords = tetramino.getCoords();
+        for (int i = 0; i < 4; i++) {
+            if (isFilled(coords[i][0], coords[i][1], boardState)) {
+                return true;
+            }
+        }
         return false;
     }
 

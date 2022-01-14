@@ -27,17 +27,24 @@ public class Board {
     private String flavorText = "";
     private boolean hasHold = false;
     Queue<Tetramino> queue = new LinkedList<>();
+    private boolean lost = false;
 
 
     public Board() {//initializes the board
+        reset();
+    }
+
+    public void reset(){
         for (int i = 0; i < 23; i++) {
             board[i] = "|          |";
         }
         board[23] = "------------";
+        queue.clear();
         for (int i = 0; i < 6; i++) {//fills the queue
             queue.add(Tetramino.MinoGenerator.getNext());
         }
         currentMino = queue.poll();
+        hold = null;
     }
 
 
@@ -66,9 +73,7 @@ public class Board {
             if (queueNum < 5) {
                 output.append(((Tetramino) queue.toArray()[queueNum]).getType());
             } else if (queueNum == 7) {
-                if (hold != null) {
-                    output.append("hold ").append(hold.getType());
-                }
+                output.append("hold ").append(hold == null ? "X" : hold.getType());
             }
             queueNum++;
             output.append('\n');
@@ -115,6 +120,9 @@ public class Board {
     public void nextMino() {
         queue.add(Tetramino.MinoGenerator.getNext());
         currentMino = queue.poll();
+        if(TetraminoUpdater.checkCollision(currentMino, board)){
+            reset();
+        }
         hasHold = false;
     }
 
