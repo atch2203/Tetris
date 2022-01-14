@@ -21,17 +21,15 @@ public class Main {
 
     public static void main(String[] args) {
         board = new Board();
-        while(true){
+        while (true) {
             System.out.println(board.getDisplay());
             processInput(scanner.nextLine());
-            board.updateLines();
         }
     }
 
 
-
-    public static void processInput(String input){
-        switch(input){//handles all the console inputs
+    public static void processInput(String input) {
+        switch (input) {//handles all the console inputs
             case "l":
                 TetraminoUpdater.moveX(board.getCurrentMino(), board.getBoard(), -1);
                 break;
@@ -52,11 +50,16 @@ public class Main {
                 break;
             case "hd":
                 TetraminoUpdater.hardDrop(board.getCurrentMino(), board.getBoard());
+                board.updateLines();
                 board.nextMino();
                 break;
             case "lock"://lock
                 TetraminoUpdater.lock(board.getCurrentMino(), board.getBoard());
+                board.updateLines();
                 board.nextMino();
+                break;
+            case "hold":
+                board.hold();
                 break;
         }
     }

@@ -24,7 +24,7 @@ public class Tetramino {
     private int orientation; // 1 - 4, 1 being up and 2 being right
     private Type type;//Type of piece
 
-    enum Type{
+    enum Type {
         O("\u001B[33m"),
         I("\u001B[36m"),
         T("\u001B[35m"),
@@ -43,21 +43,22 @@ public class Tetramino {
             this.color = color;
             readCoords(this);
         }
+
         //Sets the piece coordinates for each piece
         private void readCoords(Type t) {
             Scanner scanner;
             try {
                 File file = new File("src/tetraminoPositions.txt");
                 scanner = new Scanner(file);//reads from position file
-            }catch(FileNotFoundException e){
+            } catch (FileNotFoundException e) {
                 return;
             }
             scanner.skip("[\\s\\S]*" + t);//skips to piece index
             scanner.nextLine();
-            for(int i = 1; i <= 4; i++){
+            for (int i = 1; i <= 4; i++) {
                 scanner.skip(Integer.toString(i));//skips to orientation number
                 scanner.nextLine();
-                int[][] coords = switch(i) {//sets the corresponding string array depending on i
+                int[][] coords = switch (i) {//sets the corresponding string array depending on i
                     case 1 -> upCoords;
                     case 2 -> rightCoords;
                     case 3 -> downCoords;
@@ -67,8 +68,8 @@ public class Tetramino {
                 int cur = 0;
                 for (int j = 0; j < 4; j++) {//reads through the grid and add coordinates that have a star in it to position array
                     String line = scanner.nextLine();
-                    for(int k = 0; k < 4; k++){
-                        if(line.charAt(k) == '*'){
+                    for (int k = 0; k < 4; k++) {
+                        if (line.charAt(k) == '*') {
                             coords[cur++] = new int[]{(k - 1), (j - 1)};//subtraction to offset from center
                         }
                     }
@@ -77,12 +78,10 @@ public class Tetramino {
             scanner.close();
         }
 
-        public String getMino(){
+        public String getMino() {
             return "■";
         }
     }
-
-
 
 
     public Tetramino(Type type) {
@@ -92,7 +91,7 @@ public class Tetramino {
         this.type = type;
     }
 
-    public void updateMino(int x, int y, int o){
+    public void updateMino(int x, int y, int o) {
         this.x = x;
         this.y = y;
         this.orientation = o;
@@ -118,18 +117,18 @@ public class Tetramino {
      * returns coordinate of each part of the tetramino
      * @return a string array in the format {"1,2","3,3","3,2","2,2"}
      */
-    public int[][] getCoords(){
-        return applyTransformation((switch(orientation){
-                    case 1 -> type.upCoords;
-                    case 2 -> type.rightCoords;
-                    case 3 -> type.downCoords;
-                    case 4 -> type.leftCoords;
-                    default -> throw new IllegalStateException("Unexpected value: " + orientation);
-                }).clone());
+    public int[][] getCoords() {
+        return applyTransformation((switch (orientation) {
+            case 1 -> type.upCoords;
+            case 2 -> type.rightCoords;
+            case 3 -> type.downCoords;
+            case 4 -> type.leftCoords;
+            default -> throw new IllegalStateException("Unexpected value: " + orientation);
+        }).clone());
     }
 
-    public int[][] applyTransformation(int[][] input){
-        for(int i = 0; i < input.length; i++){
+    public int[][] applyTransformation(int[][] input) {
+        for (int i = 0; i < input.length; i++) {
             input[i] = new int[]{input[i][0] + x, input[i][1] + y};
         }
         return input;
@@ -140,15 +139,15 @@ public class Tetramino {
         private static int left = 7;
         private static Random random = new Random();
 
-        public static Tetramino getNext(){
-            if(used.equals("1111111")){
+        public static Tetramino getNext() {
+            if (used.equals("1111111")) {
                 used = "0000000";
                 left = 7;
             }
             int next = random.nextInt(left--);
             int index = 0;
-            while(next >= 0){
-                if(used.charAt(index) == '0'){
+            while (next >= 0) {
+                if (used.charAt(index) == '0') {
                     next--;
                 }
                 index++;

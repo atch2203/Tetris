@@ -11,4 +11,9 @@ Displays the board and all the graphical info
 
 
 public class GUI {
+    Board board;
+
+    public GUI() {
+
+    }
 }

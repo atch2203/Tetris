@@ -10,7 +10,6 @@ When rotating a piece, read kicks from a text file and return updated position
  */
 
 
-
 public class TetraminoUpdater {
 
 
@@ -39,7 +38,7 @@ public class TetraminoUpdater {
      * @param surroundings 6x6?(maybe 4x4) area around tetramino
      * @return
      */
-    public static boolean checkCollision(Tetramino tetramino, String[] surroundings){
+    public static boolean checkCollision(Tetramino tetramino, String[] surroundings) {
         return false;
     }
 
@@ -50,10 +49,10 @@ public class TetraminoUpdater {
      * @param n direction, 1 is right, -1 is left
      * @return whether the move was successful
      */
-    public static boolean moveX(Tetramino tetramino, String[] boardState, int n){
+    public static boolean moveX(Tetramino tetramino, String[] boardState, int n) {
         int[][] coords = tetramino.getCoords();
-        for(int i = 0; i < 4; i++){
-            if(isFilled(coords[i][0] + n, coords[i][1], boardState)){
+        for (int i = 0; i < 4; i++) {
+            if (isFilled(coords[i][0] + n, coords[i][1], boardState)) {
                 return false;
             }
         }
@@ -68,10 +67,10 @@ public class TetraminoUpdater {
      * @param n direction, 1 down, -1 up
      * @return whether the move was successful
      */
-    public static boolean moveY(Tetramino tetramino, String[] boardState, int n){
+    public static boolean moveY(Tetramino tetramino, String[] boardState, int n) {
         int[][] coords = tetramino.getCoords();
-        for(int i = 0; i < 4; i++){
-            if(isFilled(coords[i][0], coords[i][1] + n, boardState)){
+        for (int i = 0; i < 4; i++) {
+            if (isFilled(coords[i][0], coords[i][1] + n, boardState)) {
                 return false;
             }
         }
@@ -84,8 +83,8 @@ public class TetraminoUpdater {
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardstate
      */
-    public static void softDrop(Tetramino tetramino, String[] boardState){
-        while(moveY(tetramino, boardState, 1));
+    public static void softDrop(Tetramino tetramino, String[] boardState) {
+        while (moveY(tetramino, boardState, 1)) ;
     }
 
     /***
@@ -93,9 +92,8 @@ public class TetraminoUpdater {
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardstate
      */
-    public static void lock(Tetramino tetramino, String[] boardState){
-        System.out.println("locking");
-        for(int i = 0; i < 4; i++){
+    public static void lock(Tetramino tetramino, String[] boardState) {
+        for (int i = 0; i < 4; i++) {
             String line = boardState[tetramino.getCoords()[i][1]];
             line = line.substring(0, tetramino.getCoords()[i][0]) + tetramino.getType().getMino() + line.substring(tetramino.getCoords()[i][0] + 1);
             boardState[tetramino.getCoords()[i][1]] = line;
@@ -107,7 +105,7 @@ public class TetraminoUpdater {
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardstate
      */
-    public static void hardDrop(Tetramino tetramino, String[] boardState){
+    public static void hardDrop(Tetramino tetramino, String[] boardState) {
         softDrop(tetramino, boardState);
         lock(tetramino, boardState);
     }
@@ -119,7 +117,7 @@ public class TetraminoUpdater {
      * @param boardState current boardstate
      * @return if the coordinate on the board is filled
      */
-    private static boolean isFilled(int x, int y, String[] boardState){
+    private static boolean isFilled(int x, int y, String[] boardState) {
         return boardState[y].charAt(x) != ' ';
     }
 
