@@ -7,6 +7,7 @@ Tetris Project
 
 Class description:
 Displays the board and all the graphical info
+Also contains controls
  */
 
 
@@ -29,7 +30,6 @@ public class GUI {
 
     private static final int DAS = 150;
 
-
     public GUI(Board board) {
         this.board = board;
         panel = new JPanel();
@@ -44,28 +44,25 @@ public class GUI {
         panel.add(text);
 
         KeyListener listener = new KeyListener() {//key listener for user input
-            final Runnable rightDAS = new Runnable() {
-                @Override
-                public void run() {
-                    try{
-                        Thread.sleep(DAS);
-                        while(board.moveR());
-                        updateDisplay();
-                    }catch(InterruptedException ignored){}
-                }
+            final Runnable rightDAS = () -> {
+                try{
+                    Thread.sleep(DAS);
+                    while(board.moveR());
+                    updateDisplay();
+                }catch(InterruptedException ignored){}
             };
 
-            final Runnable leftDAS = new Runnable() {
-                @Override
-                public void run() {
-                    try{
-                        Thread.sleep(DAS);
-                        while(board.moveL());
-                        updateDisplay();
-                    }catch(InterruptedException ignored){}
+            final Runnable leftDAS = () -> {
+                try{
+                    Thread.sleep(DAS);
+                    while(board.moveL());
+                    updateDisplay();
+                }catch(InterruptedException ignored){
+                    System.out.println("Interrupted");
                 }
             };
             Thread DASThread;
+            String dasSide = "left";
 
             final Set<Integer> pressed = new HashSet<>();
 
@@ -75,7 +72,7 @@ public class GUI {
             }
 
             @Override
-            public synchronized void keyPressed(KeyEvent e) {
+            public synchronized void keyPressed(KeyEvent e) {//CHeck all key inputs
                 if(pressed.contains(e.getKeyCode())){
                     return;
                 }
@@ -84,16 +81,19 @@ public class GUI {
                     case 'x' -> board.clockwise();
                     case 'z' -> board.counterclockwise();
                     case 'a' -> board.rotate180();
+                    case 'r' -> board.reset();
                 }
 
                 switch(e.getKeyCode()){
                     case KeyEvent.VK_RIGHT -> {
                         board.moveR();
+                        dasSide = "right";
                         DASThread = new Thread(rightDAS);
                         DASThread.start();
                     }
                     case KeyEvent.VK_LEFT -> {
                         board.moveL();
+                        dasSide = "left";
                         DASThread = new Thread(leftDAS);
                         DASThread.start();
                     }
@@ -106,7 +106,9 @@ public class GUI {
 
             @Override
             public synchronized void keyReleased(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_LEFT){
+                if(e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")){
+                    DASThread.interrupt();
+                }else if(e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")){
                     DASThread.interrupt();
                 }
                 pressed.remove(e.getKeyCode());
