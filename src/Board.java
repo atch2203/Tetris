@@ -16,21 +16,21 @@ Functionality includes getting a board display, updating cleared lines, controli
  */
 
 import java.util.LinkedList;
-import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class Board {
     private String[] board = new String[24];
     private Tetramino currentMino;
+    private Tetramino preview;
     private Tetramino hold = null;
     private int score = 0;
     private String flavorText = "";
     private boolean hasHold = false;
     Queue<Tetramino> queue = new LinkedList<>();
-    private boolean lost = false;
+    private Tetramino.MinoGenerator generator;
 
-
-    public Board() {//initializes the board
+    public Board(int seed) {//initializes the board
+        generator = new Tetramino.MinoGenerator(seed);
         reset();
     }
 
@@ -41,7 +41,7 @@ public class Board {
         board[23] = "------------";
         queue.clear();
         for (int i = 0; i < 6; i++) {//fills the queue
-            queue.add(Tetramino.MinoGenerator.getNext());
+            queue.add(generator.getNext());
         }
         currentMino = queue.poll();
         hold = null;
@@ -79,11 +79,30 @@ public class Board {
     }
 
     /***
-     * gets board with current mino drawn
+     * gets board with current mino and preview drawn
      * @return board with mino drawn
      */
     public String[] getFullBoard(){
         String[] boardCopy = board.clone();
+
+        if(getHeight() < 5){//displays the next tetramino if the board is getting high
+            preview = new Tetramino(queue.peek());
+            for(int i = 0; i < 4; i++){
+                String line = boardCopy[preview.getCoords()[i][1]];
+                line = line.substring(0, preview.getCoords()[i][0]) + "N" + line.substring(preview.getCoords()[i][0] + 1);
+                boardCopy[preview.getCoords()[i][1]] = line;
+            }
+        }
+
+        preview = new Tetramino(currentMino);
+        TetraminoUpdater.softDrop(preview, board);
+
+        for(int i = 0; i < 4; i++){
+            String line = boardCopy[preview.getCoords()[i][1]];
+            line = line.substring(0, preview.getCoords()[i][0]) + "P" + line.substring(preview.getCoords()[i][0] + 1);
+            boardCopy[preview.getCoords()[i][1]] = line;
+        }
+
         for (int i = 0; i < 4; i++) {//inserts the mino into the display board
             String line = boardCopy[currentMino.getCoords()[i][1]];
             line = line.substring(0, currentMino.getCoords()[i][0]) + currentMino.getType().getMino() + line.substring(currentMino.getCoords()[i][0] + 1);
@@ -127,12 +146,26 @@ public class Board {
      * Generates the next mino and places it in the queue, and then polls the next mino to use
      */
     public void nextMino() {
-        queue.add(Tetramino.MinoGenerator.getNext());
+        queue.add(generator.getNext());
         currentMino = queue.poll();
-        if (TetraminoUpdater.checkCollision(currentMino, board)) {
+        if (TetraminoUpdater.checkCollision(currentMino, board) || getHeight() < 0) {
             reset();
         }
         hasHold = false;
+    }
+
+
+    /***
+     * gets the height of the maximum piece on the board
+     * @return the height, with 0 being highest and 24 being lowest
+     */
+    public int getHeight(){
+        for(int i = 0; i < 24; i++){
+            if(!board[i].equals("|          |")){
+                return i;
+            }
+        }
+        return 24;
     }
 
 
@@ -204,8 +237,6 @@ public class Board {
         hasHold = true;
     }
 
-
-
     public Tetramino getHold() {
         return hold;
     }
@@ -216,5 +247,22 @@ public class Board {
 
     public Queue<Tetramino> getQueue() {
         return queue;
+    }
+
+
+    public void setBoard(String[] board) {
+        this.board = board;
+    }
+
+    public void setCurrentMino(Tetramino currentMino) {
+        this.currentMino = currentMino;
+    }
+
+    public void setHold(Tetramino hold) {
+        this.hold = hold;
+    }
+
+    public void setQueue(Queue<Tetramino> queue) {
+        this.queue = queue;
     }
 }

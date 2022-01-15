@@ -13,119 +13,32 @@ Also contains controls
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.HashSet;
 import java.util.Queue;
-import java.util.Set;
 
-public class GUI {
-    Board board;
-    BoardGUI boardGUI;
-    HoldGUI holdGUI;
-    QueueGUI queueGUI;
-    JFrame frame;
+public class GUI extends JPanel {
+    public final Board board;
+    public final BoardGUI boardGUI;
+    public final HoldGUI holdGUI;
+    public final QueueGUI queueGUI;
 
     public static final int sqaureSize = 40;//size of single pixel
     public static final int colSize = sqaureSize * 5;//width of the queue + hold columns
-
-    private static final int DAS = 150;
 
     public GUI(Board board) {
         this.board = board;
         this.boardGUI = new BoardGUI(board.getFullBoard());
         this.holdGUI = new HoldGUI();
         this.queueGUI = new QueueGUI(board.getQueue());
-        frame = new JFrame("Tetris");
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        frame.setLayout(new GridBagLayout());
+        this.setLayout(new GridBagLayout());
 
-        frame.getContentPane().add(holdGUI);
-        frame.getContentPane().add(boardGUI);
-        frame.getContentPane().add(queueGUI);
-
-        KeyListener listener = new KeyListener() {//key listener for user input
-            final Runnable rightDAS = () -> {
-                try {
-                    Thread.sleep(DAS);
-                    while (board.moveR()) ;
-                    updateDisplay();
-                } catch (InterruptedException ignored) {
-                }
-            };
-
-            final Runnable leftDAS = () -> {
-                try {
-                    Thread.sleep(DAS);
-                    while (board.moveL()) ;
-                    updateDisplay();
-                } catch (InterruptedException ignored) {}
-            };
-            Thread DASThread;
-            String dasSide = "left";
-
-            final Set<Integer> pressed = new HashSet<>();
-
-            @Override
-            public void keyTyped(KeyEvent e) {
-
-            }
-
-            @Override
-            public synchronized void keyPressed(KeyEvent e) {//CHeck all key inputs
-                if (pressed.contains(e.getKeyCode())) {
-                    return;
-                }
-                switch (Character.toLowerCase(e.getKeyChar())) {//checks all inputs
-                    case ' ' -> board.hardDrop();
-                    case 'x' -> board.clockwise();
-                    case 'z' -> board.counterclockwise();
-                    case 'a' -> board.rotate180();
-                    case 'r' -> board.reset();
-                }
-
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_RIGHT -> {
-                        board.moveR();
-                        dasSide = "right";
-                        DASThread = new Thread(rightDAS);
-                        DASThread.start();
-                    }
-                    case KeyEvent.VK_LEFT -> {
-                        board.moveL();
-                        dasSide = "left";
-                        DASThread = new Thread(leftDAS);
-                        DASThread.start();
-                    }
-                    case KeyEvent.VK_DOWN -> board.softDrop();
-                    case KeyEvent.VK_SHIFT -> board.hold();
-                }
-                pressed.add(e.getKeyCode());
-                updateDisplay();
-            }
-
-            @Override
-            public synchronized void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")) {
-                    DASThread.interrupt();
-                } else if (e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")) {
-                    DASThread.interrupt();
-                }
-                pressed.remove(e.getKeyCode());
-            }
-        };
-        frame.addKeyListener(listener);
-
+        this.add(holdGUI);
+        this.add(boardGUI);
+        this.add(queueGUI);
         updateDisplay();
-
-        frame.pack();
-        frame.setVisible(true);
-
     }
 
-    private void updateDisplay() {
-        System.out.println("update");
+    public void updateDisplay() {
         boardGUI.setBoard(board.getFullBoard());
         boardGUI.updateUI();
         holdGUI.setMino(board.getHold());
@@ -134,10 +47,15 @@ public class GUI {
         queueGUI.updateUI();
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(sqaureSize * 12 + colSize * 2, sqaureSize * 30);
+    }
+
     public static class QueueGUI extends JPanel {
         private Queue<Tetramino> queue;
 
-        public QueueGUI(Queue<Tetramino> queue){
+        public QueueGUI(Queue<Tetramino> queue) {
             this.queue = queue;
         }
 
@@ -145,7 +63,7 @@ public class GUI {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             int queueNum = 0;
-            for(Tetramino mino : queue){
+            for (Tetramino mino : queue) {
                 g.setColor(mino.getType().color);
 
                 int center = switch (mino.getType()) {
@@ -155,7 +73,7 @@ public class GUI {
 
                 int[][] coords = mino.getType().upCoords;
 
-                for(int i = 0; i < 4; i++){
+                for (int i = 0; i < 4; i++) {
                     g.fillRect(coords[i][0] * sqaureSize + center, coords[i][1] * sqaureSize + center + queueNum * colSize, sqaureSize, sqaureSize);
                 }
                 queueNum++;
@@ -164,7 +82,7 @@ public class GUI {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(colSize, colSize *5);
+            return new Dimension(colSize, colSize * 5);
         }
 
         public void setQueue(Queue<Tetramino> queue) {
@@ -180,7 +98,7 @@ public class GUI {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            if(mino == null){
+            if (mino == null) {
                 return;
             }
             g.setColor(mino.getType().color);
@@ -192,7 +110,7 @@ public class GUI {
 
             int[][] coords = mino.getType().upCoords;
 
-            for(int i = 0; i < 4; i++){
+            for (int i = 0; i < 4; i++) {
                 g.fillRect(coords[i][0] * sqaureSize + center, coords[i][1] * sqaureSize + center, sqaureSize, sqaureSize);
             }
         }
@@ -214,9 +132,9 @@ public class GUI {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            for(int i = 0; i < 24; i++){
-                for(int j = 0; j < 12; j++){
-                    g.setColor(switch(board[i].charAt(j)){
+            for (int i = 0; i < 24; i++) {
+                for (int j = 0; j < 12; j++) {
+                    g.setColor(switch (board[i].charAt(j)) {
                         case '|' -> Color.BLACK;
                         case '-' -> Color.BLACK;
                         case 'I' -> Color.CYAN;
@@ -227,12 +145,19 @@ public class GUI {
                         case 'S' -> Color.GREEN;
                         case 'Z' -> Color.RED;
                         case ' ' -> Color.WHITE;
+                        case 'P' -> Color.GRAY;
+                        case 'N' -> Color.LIGHT_GRAY;
                         default -> throw new IllegalStateException("Unexpected value: " + board[i].charAt(j));
                     });
-                    g.fillRect(j*sqaureSize, i*sqaureSize, sqaureSize, sqaureSize);
-                    if(board[i].charAt(j) == ' '){
+                    g.fillRect(j * sqaureSize, i * sqaureSize, sqaureSize, sqaureSize);
+                    if (board[i].charAt(j) == ' ') {
                         g.setColor(Color.BLACK);
-                        g.drawRect(j*sqaureSize, i*sqaureSize, sqaureSize, sqaureSize);
+                        g.drawRect(j * sqaureSize, i * sqaureSize, sqaureSize, sqaureSize);
+                    }
+                    if(g.getColor() == Color.LIGHT_GRAY){
+                        g.setColor(Color.RED);
+                        g.drawLine(j*sqaureSize, i*sqaureSize, (j+1) * sqaureSize, (i+1) * sqaureSize);
+                        g.drawLine((j+1)*sqaureSize, i*sqaureSize, j * sqaureSize, (i+1) * sqaureSize);
                     }
                 }
             }
@@ -244,7 +169,7 @@ public class GUI {
             return new Dimension(sqaureSize * 12, sqaureSize * 24);
         }
 
-        public BoardGUI(String[] board){
+        public BoardGUI(String[] board) {
             this.board = board;
         }
 

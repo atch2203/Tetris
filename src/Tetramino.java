@@ -14,8 +14,6 @@ Class description:
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -91,6 +89,13 @@ public class Tetramino {
         this.type = type;
     }
 
+    public Tetramino(Tetramino t){
+        this.x = t.x;
+        this.y = t.y;
+        this.orientation = t.orientation;
+        this.type = t.type;
+    }
+
     public void updateMino(int x, int y, int o) {
         this.x = x;
         this.y = y;
@@ -135,11 +140,15 @@ public class Tetramino {
     }
 
     public static class MinoGenerator {
-        private static String used = "0000000";
-        private static int left = 7;
-        private static Random random = new Random();
+        private String used = "0000000";
+        private int left = 7;
+        private Random random;
 
-        public static Tetramino getNext() {
+        public MinoGenerator(int seed){
+            random = new Random(seed);
+        }
+
+        public Tetramino getNext() {
             if (used.equals("1111111")) {
                 used = "0000000";
                 left = 7;
@@ -164,6 +173,10 @@ public class Tetramino {
                 case 6 -> new Tetramino(Tetramino.Type.L);
                 default -> throw new IllegalStateException("Unexpected value: " + index);
             };
+        }
+
+        public void reset(){
+            used = "0000000";
         }
     }
 
