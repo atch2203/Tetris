@@ -45,19 +45,20 @@ public class GUI {
 
         KeyListener listener = new KeyListener() {//key listener for user input
             final Runnable rightDAS = () -> {
-                try{
+                try {
                     Thread.sleep(DAS);
-                    while(board.moveR());
+                    while (board.moveR()) ;
                     updateDisplay();
-                }catch(InterruptedException ignored){}
+                } catch (InterruptedException ignored) {
+                }
             };
 
             final Runnable leftDAS = () -> {
-                try{
+                try {
                     Thread.sleep(DAS);
-                    while(board.moveL());
+                    while (board.moveL()) ;
                     updateDisplay();
-                }catch(InterruptedException ignored){
+                } catch (InterruptedException ignored) {
                     System.out.println("Interrupted");
                 }
             };
@@ -73,10 +74,10 @@ public class GUI {
 
             @Override
             public synchronized void keyPressed(KeyEvent e) {//CHeck all key inputs
-                if(pressed.contains(e.getKeyCode())){
+                if (pressed.contains(e.getKeyCode())) {
                     return;
                 }
-                switch(Character.toLowerCase(e.getKeyChar())){//checks all inputs
+                switch (Character.toLowerCase(e.getKeyChar())) {//checks all inputs
                     case ' ' -> board.hardDrop();
                     case 'x' -> board.clockwise();
                     case 'z' -> board.counterclockwise();
@@ -84,7 +85,7 @@ public class GUI {
                     case 'r' -> board.reset();
                 }
 
-                switch(e.getKeyCode()){
+                switch (e.getKeyCode()) {
                     case KeyEvent.VK_RIGHT -> {
                         board.moveR();
                         dasSide = "right";
@@ -106,9 +107,9 @@ public class GUI {
 
             @Override
             public synchronized void keyReleased(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")){
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")) {
                     DASThread.interrupt();
-                }else if(e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")){
+                } else if (e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")) {
                     DASThread.interrupt();
                 }
                 pressed.remove(e.getKeyCode());
@@ -123,7 +124,7 @@ public class GUI {
 
     }
 
-    private void updateDisplay(){
+    private void updateDisplay() {
         text.setText("<html>" + board.getDisplay()
                 .replaceAll("\n", "<br />")
                 .replaceAll(" ", "&nbsp;") + "</html>");
@@ -133,26 +134,40 @@ public class GUI {
 }
 
 
-/*private static void createAndShowGUI() {
-        //Create and set up the window.
-        JFrame frame = new JFrame("HelloWorldSwing");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+/*
+try {
+			// sign into the peer-to-peer network,
+			// using the username "serverpeer", the password "serverpeerpassword",
+			// and create/find a scoped peer-to-peer network named "TestNetwork"
+			//System.out.println("Signing into the P2P network...");
+			//P2PNetwork.signin("serverpeer", "serverpeerpassword", "TestNetwork");
 
-        //Add the ubiquitous "Hello World" label.
-        JLabel label = new JLabel("Hello World");
-        frame.getContentPane().add(label);
+			// start a server socket for the domain
+			// "www.nike.laborpolicy" on port 100
+			System.out.println("Creating server socket for " + "www.nike.laborpolicy:100...");
+			ServerSocket server = new ServerSocket(100);
 
-        //Display the window.
-        frame.pack();
-        frame.setVisible(true);
-    }
+			// wait for a client
+			System.out.println("Waiting for client...");
+			Socket client = server.accept();
+			System.out.println("Client Accepted.");
 
-    public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
-    }*/
+			// now communicate with this client
+			DataInputStream in = new DataInputStream(client.getInputStream());
+			DataOutputStream out = new DataOutputStream(client.getOutputStream());
+			out.writeUTF("Hello client world!");
+			String results = in.readUTF();
+			System.out.println("Message from client: " + results);
+			System.out.println(client.toString());
+
+			// shut everything down!
+			client.close();
+			server.close();
+		  }
+
+		catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+ */

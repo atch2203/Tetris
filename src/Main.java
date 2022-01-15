@@ -17,14 +17,11 @@ public class Main {
 
     static Board board;
 
-    static Scanner scanner = new Scanner(System.in);
-
 
     public static void main(String[] args) {
         board = new Board();
-        GUI gui = new GUI(board);
+        new GUI(board);
     }
-
 
 
 }

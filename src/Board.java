@@ -34,7 +34,7 @@ public class Board {
         reset();
     }
 
-    public void reset(){
+    public void reset() {
         for (int i = 0; i < 23; i++) {
             board[i] = "|          |";
         }
@@ -120,12 +120,11 @@ public class Board {
     public void nextMino() {
         queue.add(Tetramino.MinoGenerator.getNext());
         currentMino = queue.poll();
-        if(TetraminoUpdater.checkCollision(currentMino, board)){
+        if (TetraminoUpdater.checkCollision(currentMino, board)) {
             reset();
         }
         hasHold = false;
     }
-
 
 
     public String[] getBoard() {
@@ -137,41 +136,41 @@ public class Board {
     }
 
     //moves tetramino 1 left
-    public boolean moveL(){
+    public boolean moveL() {
         return TetraminoUpdater.moveX(currentMino, board, -1);
     }
 
     //moves tetramino 1 right
-    public boolean moveR(){
+    public boolean moveR() {
         return TetraminoUpdater.moveX(currentMino, board, 1);
     }
 
     //rotates tetramino clockwise
-    public void clockwise(){
+    public void clockwise() {
         TetraminoUpdater.rotate(currentMino, board, 1);
     }
 
     //rotates tetramino counterclockwise
-    public void counterclockwise(){
+    public void counterclockwise() {
         TetraminoUpdater.rotate(currentMino, board, -1);
     }
 
     //rotates mino 180 degrees
-    public void rotate180(){
+    public void rotate180() {
         TetraminoUpdater.rotate(currentMino, board, 2);
     }
 
-    public void softDrop(){
+    public void softDrop() {
         TetraminoUpdater.softDrop(currentMino, board);
     }
 
-    public void hardDrop(){
+    public void hardDrop() {
         TetraminoUpdater.hardDrop(currentMino, board);
         updateLines();
         nextMino();
     }
 
-    public void lock(){
+    public void lock() {
         TetraminoUpdater.lock(currentMino, board);
         updateLines();
         nextMino();
@@ -182,7 +181,7 @@ public class Board {
      * If the player has held, they cannot hold again until they place the piece and the next mino is generated
      */
     public void hold() {
-        if(hasHold) {
+        if (hasHold) {
             return;
         }
         if (hold == null) {

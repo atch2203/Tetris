@@ -8,6 +8,7 @@ Tetris Project
 Class description:
 When rotating a piece, read kicks from a text file and return updated position
  */
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -15,8 +16,9 @@ import java.util.Scanner;
 public class TetraminoUpdater {
     static final int[][] otherRotations = new int[1][1];
     static final int[][] iRotations = new int[1][1];
-    static final int[][] otherPositions = new int [1][1];
-    static final int[][] iPositions = new int [1][1];
+    static final int[][] otherPositions = new int[1][1];
+    static final int[][] iPositions = new int[1][1];
+
     static {
         try {
             Scanner input;
