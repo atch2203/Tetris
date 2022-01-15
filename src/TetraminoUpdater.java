@@ -13,34 +13,34 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-public class TetraminoUpdater {
+public  class TetraminoUpdater {
     static final int[][] otherRotations = new int[1][1];
     static final int[][] iRotations = new int[1][1];
     static final int[][] otherPositions = new int[1][1];
     static final int[][] iPositions = new int[1][1];
 
-    static {
-        try {
-            Scanner input;
-            File file = new File("src/kickTables.txt");
-            input = new Scanner(file);
-            input.skip("\\s\\S" + "A");
-
-            for (int i = 0; i < 8; i++) {//TODO finish reading in kick table
-                String line = input.nextLine();
-                String[] data = line.split("\t");
-//                for (int j = 0; j < 6; j++) {
+//    static {
+//        try {
+//            Scanner input;
+//            File file = new File("src/kickTables.txt");
+//            input = new Scanner(file);
+//            input.skip("\\s\\S" + "A");
 //
-//                }
-            }
-
-            input.skip("\\s\\S" + "A");
-
-
-        } catch (FileNotFoundException e) {
-            System.out.println("Kick table not found");
-        }
-    }
+//            for (int i = 0; i < 8; i++) {//TODO finish reading in kick table
+//                String line = input.nextLine();
+//                String[] data = line.split("\t");
+////                for (int j = 0; j < 6; j++) {
+////
+////                }
+//            }
+//
+//            input.skip("\\s\\S" + "A");
+//
+//
+//        } catch (FileNotFoundException e) {
+//            System.out.println("Kick table not found");
+//        }
+//    }
 
     /***
      *

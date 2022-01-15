@@ -60,12 +60,7 @@ public class Board {
      */
     public String getDisplay() {
         StringBuilder output = new StringBuilder();
-        String[] boardCopy = board.clone();
-        for (int i = 0; i < 4; i++) {//inserts the mino into the display board
-            String line = boardCopy[currentMino.getCoords()[i][1]];
-            line = line.substring(0, currentMino.getCoords()[i][0]) + "*"/*replace this?*/ + line.substring(currentMino.getCoords()[i][0] + 1);
-            boardCopy[currentMino.getCoords()[i][1]] = line;
-        }
+        String[] boardCopy = getFullBoard();
         int queueNum = 0;
         for (String s : boardCopy) {//adds the queue to the right of the board and parses the board into a single string
             output.append(s);
@@ -81,6 +76,20 @@ public class Board {
         output.append(flavorText).append('\n').append("score: ").append(score);
         flavorText = "";
         return output.toString();
+    }
+
+    /***
+     * gets board with current mino drawn
+     * @return board with mino drawn
+     */
+    public String[] getFullBoard(){
+        String[] boardCopy = board.clone();
+        for (int i = 0; i < 4; i++) {//inserts the mino into the display board
+            String line = boardCopy[currentMino.getCoords()[i][1]];
+            line = line.substring(0, currentMino.getCoords()[i][0]) + currentMino.getType().getMino() + line.substring(currentMino.getCoords()[i][0] + 1);
+            boardCopy[currentMino.getCoords()[i][1]] = line;
+        }
+        return boardCopy;
     }
 
     /***
@@ -193,5 +202,19 @@ public class Board {
             currentMino = new Tetramino(type);
         }
         hasHold = true;
+    }
+
+
+
+    public Tetramino getHold() {
+        return hold;
+    }
+
+    public boolean isHasHold() {
+        return hasHold;
+    }
+
+    public Queue<Tetramino> getQueue() {
+        return queue;
     }
 }

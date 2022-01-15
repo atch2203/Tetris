@@ -11,6 +11,7 @@ Class description:
  */
 
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -25,21 +26,20 @@ public class Tetramino {
     private Type type;//Type of piece
 
     enum Type {
-        O("\u001B[33m"),
-        I("\u001B[36m"),
-        T("\u001B[35m"),
-        L("\u001B[37m"),
-        J("\u001B[34m"),
-        S("\u001B[32m"),
-        Z("\u001B[31m");
+        O(Color.YELLOW),
+        I(Color.CYAN),
+        T(Color.MAGENTA),
+        L(Color.ORANGE),
+        J(Color.BLUE),
+        S(Color.GREEN),
+        Z(Color.RED);
         final int[][] upCoords = new int[4][2];
         final int[][] rightCoords = new int[4][2];
         final int[][] downCoords = new int[4][2];
         final int[][] leftCoords = new int[4][2];
-        final String color;
-        final String ANSI_RESET = "\u001B[0m";
+        final Color color;
 
-        Type(String color) {
+        Type(Color color) {
             this.color = color;
             readCoords(this);
         }
@@ -79,7 +79,7 @@ public class Tetramino {
         }
 
         public String getMino() {
-            return "=";
+            return toString();
         }
     }
 
