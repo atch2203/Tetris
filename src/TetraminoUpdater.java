@@ -9,10 +9,6 @@ Class description:
 When rotating a piece, read kicks from a text file and return updated position
  */
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
-
 public  class TetraminoUpdater {
     static final int[][] otherRotations = new int[1][1];
     static final int[][] iRotations = new int[1][1];
@@ -27,7 +23,7 @@ public  class TetraminoUpdater {
 //            input.skip("\\s\\S" + "A");
 //
 //            for (int i = 0; i < 8; i++) {//TODO finish reading in kick table
-//                String line = input.nextLine();
+//                String line = input.nextLine(); // tetrio 180 kicks are weird https://tetris.wiki/images/5/52/TETR.IO_180kicks.png
 //                String[] data = line.split("\t");
 ////                for (int j = 0; j < 6; j++) {
 ////
@@ -41,6 +37,10 @@ public  class TetraminoUpdater {
 //            System.out.println("Kick table not found");
 //        }
 //    }
+
+    //Combo table
+    //https://tetris.wiki/images/9/96/TETR.IO_Combo-Table.png
+    //Multiplier is rounded up (ie b2b#2 tspin triple 5 combo is (13 / 6) * (6+2) rounded up)
 
     /***
      *

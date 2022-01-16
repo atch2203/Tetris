@@ -171,6 +171,28 @@ public class MainGameMultiPlayer {
                 case "hold" -> {
                     other.holdGUI.setMino(new Tetramino(Tetramino.Type.valueOf(readLine())));
                 }
+                case "text" -> {
+                    String read = readLine();
+                    StringBuilder total = new StringBuilder();
+                    while(!read.equals("end text")){
+                        total.append(read).append("\n");
+                        read = readLine();
+                    }
+                    other.setFlavorText(total.toString());
+                }
+                case "garbage" -> {
+                    int garbage = Integer.parseInt(readLine());
+                    user.board.getGarbage().add(garbage);
+                }
+                case "my garbage" -> {
+                    String read = readLine();
+                    Queue<Integer> garbage = new LinkedList<>();
+                    while(!read.equals("end garbage")){
+                        garbage.add(Integer.parseInt(read));
+                        read = readLine();
+                    }
+                    other.boardGUI.setGarbageQueue(garbage);
+                }
             }
             other.updateDisplayMultiPlayer();
         }
@@ -192,6 +214,19 @@ public class MainGameMultiPlayer {
         if(user.board.getHold() != null) {
             out.println("hold");
             out.println(user.board.getHold().getType());
+        }
+        out.println("my garbage");
+        for(int g : user.board.getGarbage()){
+            out.println(g);
+        }
+        out.println("end garbage");
+        out.println("text");
+        out.println(user.board.getFlavorText());
+        out.println("end text");
+        int attack = user.board.getAttack();
+        if(attack != 0){
+            out.println("garbage");
+            out.println(attack);
         }
     }
 

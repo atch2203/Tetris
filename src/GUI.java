@@ -40,7 +40,7 @@ public class GUI extends JPanel {
 
     public GUI(Board board) {
         this.board = board;
-        this.boardGUI = new BoardGUI(board.getFullBoard());
+        this.boardGUI = new BoardGUI(board.getFullBoard(), board.getGarbage());
         this.holdGUI = new HoldGUI();
         this.queueGUI = new QueueGUI(board.getQueue());
 
@@ -81,6 +81,10 @@ public class GUI extends JPanel {
         this.setPreferredSize(new Dimension(sqaureSize * 30, sqaureSize * 30));
 
         updateDisplay();
+    }
+
+    public void setFlavorText(String s){
+        text.setText("<html>" + s.replaceAll("\n", "<br />") + "</html>");
     }
 
     public void updateDisplayMultiPlayer(){
@@ -132,9 +136,9 @@ public class GUI extends JPanel {
             }
         }else{
             if(gravityDone) {
+                gravityDone = false;
                 gravity = new Thread(() -> {
                     try {
-                        gravityDone = false;
                         Thread.sleep(gravityTime);
                         TetraminoUpdater.moveY(board.getCurrentMino(), board.getBoard(), 1);
                         gravityDone = true;
@@ -231,10 +235,12 @@ public class GUI extends JPanel {
     public static class BoardGUI extends JPanel {
 
         private String[] board;
+        private Queue<Integer> garbageQueue;
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+
             for (int i = 0; i < 24; i++) {
                 for (int j = 0; j < 12; j++) {
                     g.setColor(switch (board[i].charAt(j)) {
@@ -250,6 +256,8 @@ public class GUI extends JPanel {
                         case ' ' -> Color.WHITE;
                         case 'P' -> Color.GRAY;
                         case 'N' -> Color.LIGHT_GRAY;
+                        case 'W' -> Color.RED;
+                        case 'G' -> Color.DARK_GRAY;
                         default -> throw new IllegalStateException("Unexpected value: " + board[i]);
                     });
                     g.fillRect(j * sqaureSize, i * sqaureSize, sqaureSize, sqaureSize);
@@ -264,6 +272,15 @@ public class GUI extends JPanel {
                     }
                 }
             }
+            int garbageBottom = sqaureSize * 23;
+            for(int garbage : garbageQueue){
+                if(garbageBottom - garbage * sqaureSize < 0){
+                    break;
+                }
+                g.setColor(Color.BLACK);
+                g.drawRect(0, garbageBottom - garbage * sqaureSize, sqaureSize, garbage * sqaureSize);
+                garbageBottom -= garbage * sqaureSize;
+            }
 
         }
 
@@ -272,8 +289,13 @@ public class GUI extends JPanel {
             return new Dimension(sqaureSize * 12, sqaureSize * 24);
         }
 
-        public BoardGUI(String[] board) {
+        public BoardGUI(String[] board, Queue<Integer> garbageQueue) {
             this.board = board;
+            this.garbageQueue = garbageQueue;
+        }
+
+        public void setGarbageQueue(Queue<Integer> garbageQueue) {
+            this.garbageQueue = garbageQueue;
         }
 
         public void setBoard(String[] board) {

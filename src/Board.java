@@ -17,6 +17,7 @@ Functionality includes getting a board display, updating cleared lines, controli
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 public class Board {
     private String[] board = new String[24];
@@ -25,12 +26,13 @@ public class Board {
     private Tetramino hold = null;
     private boolean hasHold = false;
     Queue<Tetramino> queue = new LinkedList<>();
-    private Tetramino.MinoGenerator generator;
+    private Tetramino.MinoGenerator minoGenerator;
+    private Random garbageGenerator;
 
     private int score = 0;
     private int b2b = 0;
     private int combo = 0;
-    private int garbage = 0;
+    private Queue<Integer> garbage = new LinkedList<>();
     private int attack = 0;
     private int totalAttack = 0;
     private int piecesPlaced = 0;
@@ -39,7 +41,8 @@ public class Board {
 
 
     public Board(int seed) {//initializes the board
-        generator = new Tetramino.MinoGenerator(seed);
+        garbageGenerator = new Random(seed + 1);
+        minoGenerator = new Tetramino.MinoGenerator(seed);
         reset();
     }
 
@@ -50,11 +53,12 @@ public class Board {
         board[23] = "------------";
         queue.clear();
         for (int i = 0; i < 6; i++) {//fills the queue
-            queue.add(generator.getNext());
+            queue.add(minoGenerator.getNext());
         }
         currentMino = queue.poll();
         hold = null;
         startTime = System.currentTimeMillis();
+        garbage = new LinkedList<>();
     }
 
 
@@ -97,28 +101,44 @@ public class Board {
 
         if(getHeight() < 8){//displays the next tetramino if the board is getting high
             preview = new Tetramino(queue.peek());
-            for(int i = 0; i < 4; i++){
-                String line = boardCopy[preview.getCoords()[i][1]];
-                line = line.substring(0, preview.getCoords()[i][0]) + "N" + line.substring(preview.getCoords()[i][0] + 1);
-                boardCopy[preview.getCoords()[i][1]] = line;
-            }
+            insertMino(preview, boardCopy, "N");
         }
 
         preview = new Tetramino(currentMino);
         TetraminoUpdater.softDrop(preview, board);
 
-        for(int i = 0; i < 4; i++){
-            String line = boardCopy[preview.getCoords()[i][1]];
-            line = line.substring(0, preview.getCoords()[i][0]) + "P" + line.substring(preview.getCoords()[i][0] + 1);
-            boardCopy[preview.getCoords()[i][1]] = line;
+        insertMino(preview, boardCopy, "P");
+
+        insertMino(currentMino, boardCopy, currentMino.getType().toString());
+
+        int garbageBottom = 22;
+        int garbageOverlap = 0;
+        for(int g : garbage) {
+
+            for (int i = garbageBottom; i > Math.max(garbageBottom - g, 0); i--) {
+                boardCopy[i] = "W" + boardCopy[i].substring(1);
+            }
+            garbageBottom -= g;
+            if(garbageBottom < 0){
+                break;
+            }
         }
 
-        for (int i = 0; i < 4; i++) {//inserts the mino into the display board
-            String line = boardCopy[currentMino.getCoords()[i][1]];
-            line = line.substring(0, currentMino.getCoords()[i][0]) + currentMino.getType().getMino() + line.substring(currentMino.getCoords()[i][0] + 1);
-            boardCopy[currentMino.getCoords()[i][1]] = line;
-        }
         return boardCopy;
+    }
+
+    /***
+     * Inserts mino into the board
+      * @param tetramino mino to display
+     * @param board current board
+     * @param character the character to use when inserting mino
+     */
+    private void insertMino(Tetramino tetramino, String[] board, String character){
+        for (int i = 0; i < 4; i++) {//inserts the mino into the display board
+            String line = board[tetramino.getCoords()[i][1]];
+            line = line.substring(0, tetramino.getCoords()[i][0]) + character + line.substring(tetramino.getCoords()[i][0] + 1);
+            board[tetramino.getCoords()[i][1]] = line;
+        }
     }
 
     /***
@@ -167,19 +187,54 @@ public class Board {
                 b2b = 0;
             }
             combo++;
+            attack = linesCleared;
+            totalAttack += attack;
         }else{
+            processGarbage();
             combo = 0;
         }
     }
 
     /***
      * lets the gui get the attack to send and then resets attack
-     * @return attack
+     * @return attack sent by previous move
      */
     public int getAttack() {
         int temp = attack;
         attack = 0;
         return temp;
+    }
+
+    /***
+     * processes the garbage and adds it to the board
+     */
+    private void processGarbage(){
+        int garbageHeight;
+        try{
+            garbageHeight = garbage.poll();
+        }catch(NullPointerException e){
+            System.out.println("null");
+            return;
+        }
+
+        //move board up
+        for(int i = garbageHeight; i < 23; i++){
+            board[i - garbageHeight] = board[i];
+        }
+
+        //move tetramino up
+        int oldMinoSpot = currentMino.getY();
+        currentMino.updateMino(currentMino.getX(), currentMino.getY() - garbageHeight, currentMino.getOrientation());
+
+        //Add garbage
+        int garbageColumn = garbageGenerator.nextInt(10) + 1;
+        String garbageLine = "|GGGGGGGGGG|".substring(0, garbageColumn) + " " + "|GGGGGGGGGG|".substring(garbageColumn + 1);
+        for(int i = 22; i > 22 - garbageHeight; i--){
+            board[i] = garbageLine;
+        }
+
+        //move tetramino back down
+        while(currentMino.getY() <= oldMinoSpot && TetraminoUpdater.moveY(currentMino, board, 1));
     }
 
     /***
@@ -200,7 +255,7 @@ public class Board {
      * Generates the next mino and places it in the queue, and then polls the next mino to use
      */
     public void nextMino() {
-        queue.add(generator.getNext());
+        queue.add(minoGenerator.getNext());
         currentMino = queue.poll();
         if (TetraminoUpdater.checkCollision(currentMino, board) || getHeight() < 0) {
             reset();
@@ -323,4 +378,7 @@ public class Board {
         return flavorText;
     }
 
+    public Queue<Integer> getGarbage() {
+        return garbage;
+    }
 }
