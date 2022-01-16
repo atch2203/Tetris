@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.BufferedReader;
@@ -21,7 +22,7 @@ public class MainGameMultiPlayer {
                 Thread.sleep(DAS);
                 dasing = true;
                 while (user.board.moveR()) ;
-                user.updateDisplay();
+                updateDisplay();
             } catch (InterruptedException ignored) {
             }
         };
@@ -30,7 +31,7 @@ public class MainGameMultiPlayer {
                 Thread.sleep(DAS);
                 dasing = true;
                 while (user.board.moveL()) ;
-                user.updateDisplay();
+                updateDisplay();
             } catch (InterruptedException ignored) {
             }
         };
@@ -75,9 +76,7 @@ public class MainGameMultiPlayer {
             moveRotate();
 
             pressed.add(e.getKeyCode());
-            user.updateDisplay();
-
-
+            updateDisplay();
         }
 
         @Override
@@ -123,6 +122,7 @@ public class MainGameMultiPlayer {
         user = new GUI(new Board(seed));
         other = new GUI(new Board(seed));
         window = new JFrame();
+        window.setLayout(new GridLayout(1, 2));
         window.add(user);
         window.add(other);
 
@@ -141,20 +141,26 @@ public class MainGameMultiPlayer {
                     for(int i = 0; i < 24; i++){
                         board[i] = readLine();
                     }
-                    other.board.setBoard(board);
+                    other.boardGUI.setBoard(board);
+                    if(!readLine().equals("end board")){
+                        throw new IllegalStateException("board not ended");
+                    }
                 }
                 case "queue" -> {
                     Queue<Tetramino> queue = new LinkedList<>();
                     for(int i = 0; i < 5; i++){
                         queue.add(new Tetramino(Tetramino.Type.valueOf(readLine())));
                     }
-                    other.board.setQueue(queue);
+                    other.queueGUI.setQueue(queue);
+                    if(!readLine().equals("end queue")){
+                        throw new IllegalStateException("queue not ended");
+                    }
                 }
                 case "hold" -> {
-                    other.board.setHold(new Tetramino(Tetramino.Type.valueOf(readLine())));
+                    other.holdGUI.setMino(new Tetramino(Tetramino.Type.valueOf(readLine())));
                 }
             }
-            other.updateDisplay();
+            other.updateDisplayMultiPlayer();
         }
     }
 
@@ -164,11 +170,22 @@ public class MainGameMultiPlayer {
         for(int i = 0; i < 24; i++){
             out.println(userBoard[i]);
         }
+        out.println("end board");
         out.println("queue");
         Queue<Tetramino> queue = user.board.getQueue();
-        for(int i = 0; i < 5; i++){
-            out.println();
+        for(Tetramino t : queue){
+            out.println(t.getType());
         }
+        out.println("end queue");
+        if(user.board.getHold() != null) {
+            out.println("hold");
+            out.println(user.board.getHold().getType());
+        }
+    }
+
+    private void updateDisplay(){
+        user.updateDisplay();
+        outputData();
     }
     
     private String readLine(){

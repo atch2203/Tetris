@@ -6,8 +6,6 @@ import java.net.Socket;
 
 public class GameClient extends MainGameMultiPlayer {
     private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
 
     public void startConnection(String ip, int port) {
         try {

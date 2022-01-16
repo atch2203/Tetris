@@ -38,6 +38,12 @@ public class GUI extends JPanel {
         updateDisplay();
     }
 
+    public void updateDisplayMultiPlayer(){
+        boardGUI.updateUI();
+        holdGUI.updateUI();
+        queueGUI.updateUI();
+    }
+
     public void updateDisplay() {
         boardGUI.setBoard(board.getFullBoard());
         boardGUI.updateUI();
