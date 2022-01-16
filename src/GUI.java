@@ -20,9 +20,23 @@ public class GUI extends JPanel {
     public final BoardGUI boardGUI;
     public final HoldGUI holdGUI;
     public final QueueGUI queueGUI;
+    public final JLabel text;
 
+    private long placedTime = 0;
+    private long gravityTime = 1000;
+    private boolean gravityDone = true;
+    private Thread autoPlace, gravity;
+    private Thread sendThread;
+
+    private static final Font font = new Font(Font.MONOSPACED, Font.PLAIN, 30);
     public static final int sqaureSize = 40;//size of single pixel
     public static final int colSize = sqaureSize * 5;//width of the queue + hold columns
+
+    public GUI(Board board, Thread sendThread){
+        this(board);
+        this.sendThread = sendThread;
+        sendThread.start();
+    }
 
     public GUI(Board board) {
         this.board = board;
@@ -30,11 +44,42 @@ public class GUI extends JPanel {
         this.holdGUI = new HoldGUI();
         this.queueGUI = new QueueGUI(board.getQueue());
 
-        this.setLayout(new GridBagLayout());
+        this.text = new JLabel("");
+        text.setHorizontalAlignment(SwingConstants.CENTER);
+        text.setVerticalAlignment(SwingConstants.BOTTOM);
+        text.setPreferredSize(new Dimension(colSize, sqaureSize * 16));
+        text.setFont(font);
 
-        this.add(holdGUI);
+        JLabel holdHeader = new JLabel("Hold");
+        holdHeader.setHorizontalAlignment(SwingConstants.CENTER);
+        holdHeader.setVerticalAlignment(SwingConstants.TOP);
+        holdHeader.setPreferredSize(new Dimension(colSize, sqaureSize));
+        holdHeader.setFont(font);
+
+        JPanel leftColumn = new JPanel();
+        leftColumn.setLayout(new BoxLayout(leftColumn, BoxLayout.PAGE_AXIS));
+        leftColumn.add(holdHeader);
+        leftColumn.add(holdGUI);
+        leftColumn.add(text);
+
+        JLabel queueHeader = new JLabel("Queue");
+        queueHeader.setHorizontalAlignment(SwingConstants.CENTER);
+        queueHeader.setVerticalAlignment(SwingConstants.TOP);
+        queueHeader.setPreferredSize(new Dimension(colSize, sqaureSize));
+        queueHeader.setFont(font);
+
+        JPanel rightColumn = new JPanel();
+        rightColumn.setLayout(new BoxLayout(rightColumn, BoxLayout.PAGE_AXIS));
+        rightColumn.add(queueHeader);
+        rightColumn.add(queueGUI);
+
+        this.setLayout(new GridBagLayout());
+        this.add(leftColumn);
         this.add(boardGUI);
-        this.add(queueGUI);
+        this.add(rightColumn);
+
+        this.setPreferredSize(new Dimension(sqaureSize * 30, sqaureSize * 30));
+
         updateDisplay();
     }
 
@@ -51,7 +96,59 @@ public class GUI extends JPanel {
         holdGUI.updateUI();
         queueGUI.setQueue(board.getQueue());
         queueGUI.updateUI();
+        text.setText("<html>" + board.getFlavorText().replaceAll("\n", "<br />") + "</html>");
     }
+
+    public void keyPressed(){
+        if(autoPlace != null) {
+            autoPlace.interrupt();
+        }
+    }
+
+    public synchronized void update(){
+        updateDisplay();
+        if(sendThread != null) {
+            sendThread.interrupt();
+        }
+        if(board.touchingGround()){
+            if(autoPlace == null || !autoPlace.isAlive()) {
+                autoPlace = new Thread(() -> {
+                    long start = System.currentTimeMillis();
+                    try {
+                        Thread.sleep(1000);
+                        board.hardDrop();
+                        placedTime = 0;
+                        update();
+                    } catch (InterruptedException e) {
+                        placedTime += System.currentTimeMillis() - start;
+                        if (placedTime > 10000) {
+                            board.hardDrop();
+                            placedTime = 0;
+                        }
+                        update();
+                    }
+                });
+                autoPlace.start();
+            }
+        }else{
+            if(gravityDone) {
+                gravity = new Thread(() -> {
+                    try {
+                        gravityDone = false;
+                        Thread.sleep(gravityTime);
+                        TetraminoUpdater.moveY(board.getCurrentMino(), board.getBoard(), 1);
+                        gravityDone = true;
+                        update();
+                    } catch (InterruptedException e) {
+                        gravityDone = true;
+                        update();
+                    }
+                });
+                gravity.start();
+            }
+        }
+    }
+
 
     @Override
     public Dimension getPreferredSize() {
@@ -153,7 +250,7 @@ public class GUI extends JPanel {
                         case ' ' -> Color.WHITE;
                         case 'P' -> Color.GRAY;
                         case 'N' -> Color.LIGHT_GRAY;
-                        default -> throw new IllegalStateException("Unexpected value: " + board[i].charAt(j));
+                        default -> throw new IllegalStateException("Unexpected value: " + board[i]);
                     });
                     g.fillRect(j * sqaureSize, i * sqaureSize, sqaureSize, sqaureSize);
                     if (board[i].charAt(j) == ' ') {

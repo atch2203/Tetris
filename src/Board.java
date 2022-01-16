@@ -23,11 +23,20 @@ public class Board {
     private Tetramino currentMino;
     private Tetramino preview;
     private Tetramino hold = null;
-    private int score = 0;
-    private String flavorText = "";
     private boolean hasHold = false;
     Queue<Tetramino> queue = new LinkedList<>();
     private Tetramino.MinoGenerator generator;
+
+    private int score = 0;
+    private int b2b = 0;
+    private int combo = 0;
+    private int garbage = 0;
+    private int attack = 0;
+    private int totalAttack = 0;
+    private int piecesPlaced = 0;
+    private long startTime = 0;
+    private String flavorText = "";
+
 
     public Board(int seed) {//initializes the board
         generator = new Tetramino.MinoGenerator(seed);
@@ -45,6 +54,7 @@ public class Board {
         }
         currentMino = queue.poll();
         hold = null;
+        startTime = System.currentTimeMillis();
     }
 
 
@@ -85,7 +95,7 @@ public class Board {
     public String[] getFullBoard(){
         String[] boardCopy = board.clone();
 
-        if(getHeight() < 5){//displays the next tetramino if the board is getting high
+        if(getHeight() < 8){//displays the next tetramino if the board is getting high
             preview = new Tetramino(queue.peek());
             for(int i = 0; i < 4; i++){
                 String line = boardCopy[preview.getCoords()[i][1]];
@@ -113,6 +123,7 @@ public class Board {
 
     /***
      * clears lines and adds to the score depending on how many were cleared
+     * checks t spin
      * Also adds flavor text to the display depending on the lines cleared
      */
     public void updateLines() {
@@ -127,7 +138,18 @@ public class Board {
             }
         }
         if (linesCleared > 0) {
+            flavorText = "";
             score += linesCleared;
+            if(combo > 0){
+                flavorText += combo + " combo\n";
+            }
+
+            if(b2b > 0 && (linesCleared == 4 || checkTSpin(currentMino, board))){
+                flavorText += b2b + "x b2b\n";
+            }
+            if(checkTSpin(currentMino, board)){
+                flavorText += "T spin ";
+            }
             flavorText += switch (linesCleared) {
                 case 1 -> "Single";
                 case 2 -> "Double";
@@ -135,11 +157,43 @@ public class Board {
                 case 4 -> "Quad";
                 default -> throw new IllegalStateException("Unexpected value: " + linesCleared);
             };
+            if (board[22].equals("|          |")) {
+                flavorText += "\nAll Clear";
+                score += 10;
+            }
+            if(linesCleared == 4 || checkTSpin(currentMino, board)){
+                b2b++;
+            }else{
+                b2b = 0;
+            }
+            combo++;
+        }else{
+            combo = 0;
         }
-        if (board[22].equals("|          |")) {
-            flavorText += "All Clear";
-            score += 10;
+    }
+
+    /***
+     * lets the gui get the attack to send and then resets attack
+     * @return attack
+     */
+    public int getAttack() {
+        int temp = attack;
+        attack = 0;
+        return temp;
+    }
+
+    /***
+     * checks if the board + tetramino is in a t spin state
+     * @param tetramino current tetramino, can be non-t
+     * @param board current board state
+     * @return whether the tetramino is considered a t spin
+     */
+    private boolean checkTSpin(Tetramino tetramino, String[] board){
+        if(tetramino.getType() != Tetramino.Type.T){
+            return false;
         }
+        //stsd and fin special cases
+        return true;
     }
 
     /***
@@ -212,10 +266,10 @@ public class Board {
         nextMino();
     }
 
-    public void lock() {
-        TetraminoUpdater.lock(currentMino, board);
-        updateLines();
-        nextMino();
+    public boolean touchingGround(){
+        Tetramino temp = new Tetramino(currentMino);
+        TetraminoUpdater.softDrop(temp, board);
+        return temp.getY() == currentMino.getY();
     }
 
     /***
@@ -249,7 +303,6 @@ public class Board {
         return queue;
     }
 
-
     public void setBoard(String[] board) {
         this.board = board;
     }
@@ -265,4 +318,9 @@ public class Board {
     public void setQueue(Queue<Tetramino> queue) {
         this.queue = queue;
     }
+
+    public String getFlavorText() {
+        return flavorText;
+    }
+
 }

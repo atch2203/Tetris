@@ -13,7 +13,7 @@ public class MainGameMultiPlayer {
     JFrame window;
     private final int DAS = 150;
     
-    int port = 0;
+    protected final int port = 100;
     int seed;
 
     KeyListener controls = new KeyListener() {//key listener for user input
@@ -76,6 +76,8 @@ public class MainGameMultiPlayer {
             moveRotate();
 
             pressed.add(e.getKeyCode());
+            user.keyPressed();
+            user.update();
             updateDisplay();
         }
 
@@ -119,9 +121,18 @@ public class MainGameMultiPlayer {
             seed = Integer.parseInt(readLine());
         }
         
-        user = new GUI(new Board(seed));
+        user = new GUI(new Board(seed), new Thread(() ->{
+            while(true) {
+                try {
+                    Thread.sleep(1000000);
+                } catch (InterruptedException e) {
+                    updateDisplay();
+                }
+            }
+        }));
         other = new GUI(new Board(seed));
         window = new JFrame();
+        user.update();
         window.setLayout(new GridLayout(1, 2));
         window.add(user);
         window.add(other);
@@ -140,6 +151,7 @@ public class MainGameMultiPlayer {
                     String[] board = new String[24];
                     for(int i = 0; i < 24; i++){
                         board[i] = readLine();
+                        System.out.println(board[i]);
                     }
                     other.boardGUI.setBoard(board);
                     if(!readLine().equals("end board")){
@@ -164,7 +176,7 @@ public class MainGameMultiPlayer {
         }
     }
 
-    private void outputData(){
+    private synchronized void outputData(){
         out.println("board");
         String[] userBoard = user.board.getFullBoard();
         for(int i = 0; i < 24; i++){

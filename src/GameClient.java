@@ -29,7 +29,7 @@ public class GameClient extends MainGameMultiPlayer {
 
     public static void main(String[] args) {
         GameClient client = new GameClient();
-        client.startConnection("127.0.0.1", 6666);
+        client.startConnection("192.168.2.213", client.port);
         client.setUpGame(true);
         client.runGame();
     }

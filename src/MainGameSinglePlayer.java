@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 public class MainGameSinglePlayer {
@@ -81,6 +82,9 @@ public class MainGameSinglePlayer {
             moveRotate();
 
             pressed.add(e.getKeyCode());
+
+            game.keyPressed();
+            game.update();
             game.updateDisplay();
         }
 
@@ -108,8 +112,10 @@ public class MainGameSinglePlayer {
     };
     public static void main(String[] args) {
         window = new JFrame();
-        game = new GUI(new Board(1));
+        game = new GUI(new Board(new Random().nextInt()));
+        game.update();
         window.add(game);
+        window.setSize(game.getPreferredSize());
 
         window.addKeyListener(controls);
         window.pack();
