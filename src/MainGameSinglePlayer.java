@@ -63,7 +63,7 @@ public class MainGameSinglePlayer {
                 case KeyEvent.VK_X -> game.board.clockwise();
                 case KeyEvent.VK_Z -> game.board.counterclockwise();
                 case KeyEvent.VK_A -> game.board.rotate180();
-                case KeyEvent.VK_R -> game.board.reset();
+                case KeyEvent.VK_R -> game.board.reset(new Random().nextInt());
                 case KeyEvent.VK_RIGHT -> {
                     game.board.moveR();
                     dasSide = "right";

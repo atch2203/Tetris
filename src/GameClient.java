@@ -31,6 +31,6 @@ public class GameClient extends MainGameMultiPlayer {
         GameClient client = new GameClient();
         client.startConnection("192.168.2.213", client.port);
         client.setUpGame(true);
-        client.runGame();
+        client.processInput();
     }
 }

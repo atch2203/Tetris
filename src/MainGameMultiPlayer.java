@@ -5,6 +5,7 @@ import java.awt.event.KeyListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Queue;
 import java.util.*;
 
 public class MainGameMultiPlayer {
@@ -14,32 +15,55 @@ public class MainGameMultiPlayer {
     private final int DAS = 150;
     
     protected final int port = 100;
-    int seed;
+    int seed = 0;
+    private boolean isFirst = true;
+    private boolean isPlaying = false;
 
-    KeyListener controls = new KeyListener() {//key listener for user input
-        final Runnable rightDAS = () -> {
+    KeyListener startControls = new KeyListener() {
+        @Override
+        public void keyTyped(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if(e.getKeyChar() == 'r'){
+                reset(true);
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+        }
+    };
+
+    KeyListener gameControls = new KeyListener() {//key listener for game controls
+        private final Runnable rightDAS = () -> {
             try {
                 Thread.sleep(DAS);
                 dasing = true;
-                while (user.board.moveR()) ;
+                while (!isPlaying);
+                while (user.board.moveR());
                 updateDisplay();
             } catch (InterruptedException ignored) {
             }
         };
-        final Runnable leftDAS = () -> {
+        private final Runnable leftDAS = () -> {
             try {
                 Thread.sleep(DAS);
                 dasing = true;
-                while (user.board.moveL()) ;
+                while (!isPlaying);
+                while (user.board.moveL());
                 updateDisplay();
             } catch (InterruptedException ignored) {
             }
         };
         private boolean dasing = false;
-        Thread DASThread;
-        String dasSide = "left";
+        private Thread DASThread;
+        private String dasSide = "left";
 
-        final Set<Integer> pressed = new HashSet<>();
+        public final Set<Integer> pressed = new HashSet<>();
 
         @Override
         public void keyTyped(KeyEvent e) {
@@ -52,43 +76,52 @@ public class MainGameMultiPlayer {
                 return;
             }
 
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_SPACE -> user.board.hardDrop();
-                case KeyEvent.VK_X -> user.board.clockwise();
-                case KeyEvent.VK_Z -> user.board.counterclockwise();
-                case KeyEvent.VK_A -> user.board.rotate180();
-                case KeyEvent.VK_R -> user.board.reset();
+            pressed.add(e.getKeyCode());
+            switch (e.getKeyCode()){
                 case KeyEvent.VK_RIGHT -> {
-                    user.board.moveR();
+                    if(isPlaying) {
+                        user.board.moveR();
+                    }
                     dasSide = "right";
                     DASThread = new Thread(rightDAS);
                     DASThread.start();
                 }
                 case KeyEvent.VK_LEFT -> {
-                    user.board.moveL();
+                    if (isPlaying) {
+                        user.board.moveL();
+                    }
                     dasSide = "left";
                     DASThread = new Thread(leftDAS);
                     DASThread.start();
                 }
-                case KeyEvent.VK_DOWN -> user.board.softDrop();
-                case KeyEvent.VK_SHIFT -> user.board.hold();
             }
-            moveRotate();
 
-            pressed.add(e.getKeyCode());
-            user.keyPressed();
-            user.update();
-            updateDisplay();
+            if(isPlaying) {
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_SPACE -> user.board.hardDrop();
+                    case KeyEvent.VK_X -> user.board.clockwise();
+                    case KeyEvent.VK_Z -> user.board.counterclockwise();
+                    case KeyEvent.VK_A -> user.board.rotate180();
+                    case KeyEvent.VK_DOWN -> user.board.softDrop();
+                    case KeyEvent.VK_SHIFT -> user.board.hold();
+                }
+                moveRotate();
+                user.keyPressed();
+                user.update();
+                updateDisplay();
+            }
         }
 
         @Override
         public synchronized void keyReleased(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")) {
-                dasing = false;
-                DASThread.interrupt();
-            } else if (e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")) {
-                dasing = false;
-                DASThread.interrupt();
+            if(isPlaying) {
+                if (e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")) {
+                    dasing = false;
+                    DASThread.interrupt();
+                } else if (e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")) {
+                    dasing = false;
+                    DASThread.interrupt();
+                }
             }
             pressed.remove(e.getKeyCode());
         }
@@ -108,19 +141,50 @@ public class MainGameMultiPlayer {
     protected PrintWriter out;
     protected BufferedReader in;
     String input;
+
+    protected void reset(boolean initiator){
+        window.removeKeyListener(startControls);
+        if(isFirst) {
+            window.addKeyListener(gameControls);
+        }
+        if(initiator){
+            out.println("reset");
+            if(!isFirst) {
+                seed = new Random().nextInt();
+                out.println("seed");
+                out.println(seed);
+            }
+        }else{
+            if(!isFirst) {
+                if (!readLine().equals("seed")) {
+                    throw new IllegalStateException("Game setup failed");
+                }
+                seed = Integer.parseInt(readLine());
+            }
+        }
+
+        isFirst = false;
+        user.board.reset(seed);
+        user.setDone(false);
+        new Thread(() -> {
+            try{
+                for(int i = 3; i > 0; i--){
+                    user.board.setFlavorText(Integer.toString(i));
+                    updateDisplay();
+                    Thread.sleep(1000);
+                }
+                user.board.setFlavorText("");
+                updateDisplay();
+                user.update();
+                isPlaying = true;
+            }catch(InterruptedException e){
+
+            }
+        }).start();
+
+    }
     
     protected void setUpGame(boolean initiator){
-        if(initiator){
-            seed = new Random().nextInt();
-            out.println("seed");
-            out.println(seed);
-        }else{
-            if(!readLine().equals("seed")){
-                throw new IllegalStateException("Game setup failed");
-            }
-            seed = Integer.parseInt(readLine());
-        }
-        
         user = new GUI(new Board(seed), new Thread(() ->{
             while(true) {
                 try {
@@ -132,18 +196,20 @@ public class MainGameMultiPlayer {
         }));
         other = new GUI(new Board(seed));
         window = new JFrame();
-        user.update();
         window.setLayout(new GridLayout(1, 2));
         window.add(user);
         window.add(other);
+        user.board.setFlavorText("press r to start game");
+        updateDisplay();
 
-        window.addKeyListener(controls);
+
         window.pack();
         window.setVisible(true);
 
+        window.addKeyListener(startControls);
     }
     
-    protected void runGame(){
+    protected void processInput(){
         while(true) {
             input = readLine();
             switch (input) {
@@ -151,7 +217,7 @@ public class MainGameMultiPlayer {
                     String[] board = new String[24];
                     for(int i = 0; i < 24; i++){
                         board[i] = readLine();
-                        System.out.println(board[i]);
+//                        System.out.println(board[i]);
                     }
                     other.boardGUI.setBoard(board);
                     if(!readLine().equals("end board")){
@@ -193,6 +259,17 @@ public class MainGameMultiPlayer {
                     }
                     other.boardGUI.setGarbageQueue(garbage);
                 }
+                case "lost" -> {
+                    user.board.setSideText("");
+                    user.board.setFlavorText("1st\n\npress r to replay");
+                    updateDisplay();
+                    isPlaying = false;
+                    window.addKeyListener(startControls);
+                    user.setDone(true);
+                }
+                case "reset" -> {
+                    reset(false);
+                }
             }
             other.updateDisplayMultiPlayer();
         }
@@ -221,12 +298,21 @@ public class MainGameMultiPlayer {
         }
         out.println("end garbage");
         out.println("text");
-        out.println(user.board.getFlavorText());
+        out.println(user.board.getSideText());
         out.println("end text");
         int attack = user.board.getAttack();
         if(attack != 0){
             out.println("garbage");
             out.println(attack);
+        }
+        if(user.board.hasJustLost()){
+            user.board.setSideText("");
+            user.board.setFlavorText("2nd\n\npress r to replay");
+            updateDisplay();
+            isPlaying = false;
+            window.addKeyListener(startControls);
+            user.setDone(true);
+            out.println("lost");
         }
     }
 

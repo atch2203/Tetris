@@ -38,7 +38,7 @@ public class GameHost extends MainGameMultiPlayer{
         GameHost server = new GameHost();
         server.start(server.port);
         server.setUpGame(false);
-        server.runGame();
+        server.processInput();
     }
 
 

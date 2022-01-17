@@ -28,6 +28,9 @@ public class Board {
     Queue<Tetramino> queue = new LinkedList<>();
     private Tetramino.MinoGenerator minoGenerator;
     private Random garbageGenerator;
+    private boolean lost = false;
+    private boolean hasJustLost = false;
+    private int seed = 0;
 
     private int score = 0;
     private int b2b = 0;
@@ -37,16 +40,21 @@ public class Board {
     private int totalAttack = 0;
     private int piecesPlaced = 0;
     private long startTime = 0;
+    private String sideText = "";
     private String flavorText = "";
 
 
     public Board(int seed) {//initializes the board
-        garbageGenerator = new Random(seed + 1);
-        minoGenerator = new Tetramino.MinoGenerator(seed);
-        reset();
+        reset(seed);
     }
 
-    public void reset() {
+    public void start(){
+
+    }
+
+    public void reset(int seed) {
+        garbageGenerator = new Random(seed + 1);
+        minoGenerator = new Tetramino.MinoGenerator(seed);
         for (int i = 0; i < 23; i++) {
             board[i] = "|          |";
         }
@@ -59,6 +67,7 @@ public class Board {
         hold = null;
         startTime = System.currentTimeMillis();
         garbage = new LinkedList<>();
+        lost = false;
     }
 
 
@@ -87,8 +96,8 @@ public class Board {
             queueNum++;
             output.append('\n');
         }
-        output.append(flavorText).append('\n').append("score: ").append(score);
-        flavorText = "";
+        output.append(sideText).append('\n').append("score: ").append(score);
+        sideText = "";
         return output.toString();
     }
 
@@ -97,6 +106,9 @@ public class Board {
      * @return board with mino drawn
      */
     public String[] getFullBoard(){
+        if(lost){
+            return board;
+        }
         String[] boardCopy = board.clone();
 
         if(getHeight() < 8){//displays the next tetramino if the board is getting high
@@ -158,19 +170,19 @@ public class Board {
             }
         }
         if (linesCleared > 0) {
-            flavorText = "";
+            sideText = "";
             score += linesCleared;
             if(combo > 0){
-                flavorText += combo + " combo\n";
+                sideText += combo + " combo\n";
             }
 
             if(b2b > 0 && (linesCleared == 4 || checkTSpin(currentMino, board))){
-                flavorText += b2b + "x b2b\n";
+                sideText += b2b + "x b2b\n";
             }
             if(checkTSpin(currentMino, board)){
-                flavorText += "T spin ";
+                sideText += "T spin ";
             }
-            flavorText += switch (linesCleared) {
+            sideText += switch (linesCleared) {
                 case 1 -> "Single";
                 case 2 -> "Double";
                 case 3 -> "Triple";
@@ -178,7 +190,7 @@ public class Board {
                 default -> throw new IllegalStateException("Unexpected value: " + linesCleared);
             };
             if (board[22].equals("|          |")) {
-                flavorText += "\nAll Clear";
+                sideText += "\nAll Clear";
                 score += 10;
             }
             if(linesCleared == 4 || checkTSpin(currentMino, board)){
@@ -213,7 +225,6 @@ public class Board {
         try{
             garbageHeight = garbage.poll();
         }catch(NullPointerException e){
-            System.out.println("null");
             return;
         }
 
@@ -255,11 +266,16 @@ public class Board {
      * Generates the next mino and places it in the queue, and then polls the next mino to use
      */
     public void nextMino() {
+        if (TetraminoUpdater.checkCollision(queue.peek(), board) || getHeight() < 0) {
+            lost = true;
+            hasJustLost = true;
+            for (int i = 0; i < 23; i++) {
+                board[i] = board[i].replaceAll("[^\\s|\\-G]", "G");
+            }
+            return;
+        }
         queue.add(minoGenerator.getNext());
         currentMino = queue.poll();
-        if (TetraminoUpdater.checkCollision(currentMino, board) || getHeight() < 0) {
-            reset();
-        }
         hasHold = false;
     }
 
@@ -374,11 +390,31 @@ public class Board {
         this.queue = queue;
     }
 
-    public String getFlavorText() {
-        return flavorText;
+    public String getSideText() {
+        return flavorText + "\n\n" + sideText;
     }
 
     public Queue<Integer> getGarbage() {
         return garbage;
+    }
+
+    public boolean isLost() {
+        return lost;
+    }
+
+    public boolean hasJustLost(){
+        if(hasJustLost){
+            hasJustLost = false;
+            return true;
+        }
+        return false;
+    }
+
+    public void setFlavorText(String flavorText){
+        this.flavorText = flavorText;
+    }
+
+    public void setSideText(String sideText) {
+        this.sideText = sideText;
     }
 }

@@ -27,6 +27,7 @@ public class GUI extends JPanel {
     private boolean gravityDone = true;
     private Thread autoPlace, gravity;
     private Thread sendThread;
+    private boolean isDone = false;
 
     private static final Font font = new Font(Font.MONOSPACED, Font.PLAIN, 30);
     public static final int sqaureSize = 40;//size of single pixel
@@ -100,7 +101,7 @@ public class GUI extends JPanel {
         holdGUI.updateUI();
         queueGUI.setQueue(board.getQueue());
         queueGUI.updateUI();
-        text.setText("<html>" + board.getFlavorText().replaceAll("\n", "<br />") + "</html>");
+        text.setText("<html>" + board.getSideText().replaceAll("\n", "<br />") + "</html>");
     }
 
     public void keyPressed(){
@@ -111,6 +112,9 @@ public class GUI extends JPanel {
 
     public synchronized void update(){
         updateDisplay();
+        if(isDone){
+            return;
+        }
         if(sendThread != null) {
             sendThread.interrupt();
         }
@@ -150,6 +154,13 @@ public class GUI extends JPanel {
                 });
                 gravity.start();
             }
+        }
+    }
+
+    public void setDone(boolean done){
+        this.isDone = done;
+        if(gravity != null) {
+            gravity.interrupt();
         }
     }
 
