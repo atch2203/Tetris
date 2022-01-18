@@ -9,34 +9,52 @@ Class description:
 When rotating a piece, read kicks from a text file and return updated position
  */
 
-public  class TetraminoUpdater {
-    static final int[][] otherRotations = new int[1][1];
-    static final int[][] iRotations = new int[1][1];
-    static final int[][] otherPositions = new int[1][1];
-    static final int[][] iPositions = new int[1][1];
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
-//    static {
-//        try {
-//            Scanner input;
-//            File file = new File("src/kickTables.txt");
-//            input = new Scanner(file);
-//            input.skip("\\s\\S" + "A");
-//
-//            for (int i = 0; i < 8; i++) {//TODO finish reading in kick table
-//                String line = input.nextLine(); // tetrio 180 kicks are weird https://tetris.wiki/images/5/52/TETR.IO_180kicks.png
-//                String[] data = line.split("\t");
-////                for (int j = 0; j < 6; j++) {
-////
-////                }
-//            }
-//
-//            input.skip("\\s\\S" + "A");
-//
-//
-//        } catch (FileNotFoundException e) {
-//            System.out.println("Kick table not found");
-//        }
-//    }
+public class TetraminoUpdater {
+    // column 0 is rotations, 1 - 5 are kick positions
+    // in the format of "String,String" where each String is a number
+    // needs to be parsed into an int in order to use
+    // positions: x,y where x is the amount moved horizontally and y is the amount moved vertically
+    // rotations: start,end where start is the starting orientation of the mino and end is the final rotation
+    // does not account for 180 spins
+    // TODO account for 180 kicks
+    static final String[][] otherTable = new String[8][6];
+    static final String[][] iTable = new String[8][6];
+
+    /*
+     * reading in the kick tables and intialiing otherTable and iTable
+     */
+    static {
+        try {
+            Scanner input;
+            File file = new File("src/kickTables.txt");
+            input = new Scanner(file);
+
+            input.skip("\\s\\S" + "A");
+            for (int i = 0; i < 8; i++) {
+                String line = input.nextLine(); // tetrio 180 kicks are weird https://tetris.wiki/images/5/52/TETR.IO_180kicks.png
+                line = line.replace("(", "");
+                line = line.replace(")", "");
+                String[] data = line.split("\t");
+                System.arraycopy(data, 0, otherTable[i], 0, 6);
+            }
+
+            input.skip("\\s\\S" + "B");
+            for (int i = 0; i < 8; i++) {
+                String line = input.nextLine(); // tetrio 180 kicks are weird https://tetris.wiki/images/5/52/TETR.IO_180kicks.png
+                line = line.replace("(", "");
+                line = line.replace(")", "");
+                String[] data = line.split("\t");
+                System.arraycopy(data, 0, iTable[i], 0, 6);
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Kick tables not found");
+        }
+    }
 
     //Combo table
     //https://tetris.wiki/images/9/96/TETR.IO_Combo-Table.png
