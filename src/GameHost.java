@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class GameHost extends MainGameMultiPlayer{
     private ServerSocket serverSocket;
@@ -28,7 +29,6 @@ public class GameHost extends MainGameMultiPlayer{
             out.close();
             clientSocket.close();
             serverSocket.close();
-
         }catch(IOException ignored){
             System.out.println("broke 2");
         }
@@ -36,7 +36,10 @@ public class GameHost extends MainGameMultiPlayer{
 
     public static void main(String[] args) {
         GameHost server = new GameHost();
-        server.start(server.port);
+        System.out.print("Port: ");
+        Scanner s = new Scanner(System.in);
+        int port = s.nextInt();
+        server.start(port);
         server.setUpGame(false);
         server.processInput();
     }
