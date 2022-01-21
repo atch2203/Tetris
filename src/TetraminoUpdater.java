@@ -17,8 +17,8 @@ public class TetraminoUpdater {
     // column 0 is rotations, 1 - 5 are kick positions
     // in the format of "String,String" where each String is a number
     // needs to be parsed into an int in order to use
-    // positions: x,y where x is the amount moved horizontally and y is the amount moved vertically
     // rotations: start,end where start is the starting orientation of the mino and end is the final rotation
+    // positions: x,y where x is the amount moved horizontally and y is the amount moved vertically
     // does not account for 180 spins
     // TODO account for 180 kicks
     static final String[][] otherTable = new String[8][6];
@@ -33,21 +33,22 @@ public class TetraminoUpdater {
             File file = new File("src/kickTables.txt");
             input = new Scanner(file);
 
-            input.skip("\\s\\S" + "A");
+            input.skip("\\s*A\\s*");
             for (int i = 0; i < 8; i++) {
                 String line = input.nextLine(); // tetrio 180 kicks are weird https://tetris.wiki/images/5/52/TETR.IO_180kicks.png
                 line = line.replace("(", "");
                 line = line.replace(")", "");
-                String[] data = line.split("\t");
+                String[] data = line.split("\\t");
                 System.arraycopy(data, 0, otherTable[i], 0, 6);
             }
 
-            input.skip("\\s\\S" + "B");
+//            System.out.println("nextline " + input.nextLine() + "end");
+            input.skip("\\s*B\\s*");
             for (int i = 0; i < 8; i++) {
                 String line = input.nextLine(); // tetrio 180 kicks are weird https://tetris.wiki/images/5/52/TETR.IO_180kicks.png
                 line = line.replace("(", "");
                 line = line.replace(")", "");
-                String[] data = line.split("\t");
+                String[] data = line.split("\\t");
                 System.arraycopy(data, 0, iTable[i], 0, 6);
             }
 
@@ -61,21 +62,29 @@ public class TetraminoUpdater {
     //Multiplier is rounded up (ie b2b#2 tspin triple 5 combo is (13 / 6) * (6+2) rounded up)
 
     /***
-     *
+     * rotates the piece and calls the kick function if the piece collides with the board
      * @param tetramino tetramino to modify
      * @param boardState modifiable boardState
      * @param n is the number of rotations right (negative number means rotate left)
      */
     public static void rotate(Tetramino tetramino, String[] boardState, int n) {
         int orientation = tetramino.getOrientation();
+        int newOrientation = orientation;
+        newOrientation += n;
+        newOrientation = (newOrientation + 3) % 4 + 1;
         /*
          * SRS kick info
          *  The game checks a piece's different possible positions in order depending on the kick table
          *  If there's no collision, the piece is rotated, if there is, move on to the next
          */
-        orientation += n;
-        orientation = (orientation + 3) % 4 + 1;
-        tetramino.updateMino(tetramino.getX(), tetramino.getY(), orientation);
+        // checks for collisions using a dummy tetramino and then kicks it if it does collide
+        Tetramino dummy = new Tetramino(tetramino);
+        dummy.updateMino(newOrientation);
+        if (checkCollision(dummy, boardState)) {
+            kick(dummy, tetramino, boardState, orientation + "," + newOrientation);
+        } else {
+            tetramino.updateMino(tetramino.getX(), tetramino.getY(), newOrientation);
+        }
     }
 
     /***
@@ -97,10 +106,52 @@ public class TetraminoUpdater {
     /***
      * moves the dummy tetramino into its position based on the kick table
      * TODO implement kick table
-     * @param tetramino dummy tetramino
+     * @param dummy dummy tetramino
+     * @param tetramino tetramino that is being kicked
      * @param boardState board state
+     * @param rotation the rotation string that matches that of the kick table
      */
-    public static void kick(Tetramino tetramino, String[] boardState) {
+    public static void kick(Tetramino dummy, Tetramino tetramino, String[] boardState, String rotation) {
+        int row = 0;
+        int x, y;
+        if (dummy.getType() == Tetramino.Type.O) { }
+        else if (dummy.getType() == Tetramino.Type.I) {
+            for (int i = 0; i < 8; i++) {
+                if (iTable[i][0].equals(rotation)) {
+                    row = i;
+                    break;
+                } else {
+                    System.out.println("Error: rotation not found");
+                }
+            }
+            for (int i = 1; i < 6; i++) {
+                x = Integer.parseInt(iTable[row][i].split(",")[0]);
+                y = Integer.parseInt(iTable[row][i].split(",")[1]);
+                dummy.updateMino(dummy.getX() + x, dummy.getY() + y, dummy.getOrientation());
+                if (!checkCollision(dummy, boardState)) {
+                    tetramino.updateMino(dummy.getX(), dummy.getY(), dummy.getOrientation());
+                    break;
+                }
+            }
+        } else {
+            for (int i = 0; i < 8; i++) {
+                if (otherTable[i][0].equals(rotation)) {
+                    row = i;
+                    break;
+                } else {
+                    System.out.println("Error: rotation not found");
+                }
+            }
+            for (int i = 1; i < 6; i++) {
+                x = Integer.parseInt(otherTable[row][i].split(",")[0]);
+                y = Integer.parseInt(otherTable[row][i].split(",")[1]);
+                dummy.updateMino(dummy.getX() + x, dummy.getY() + y, dummy.getOrientation());
+                if (!checkCollision(dummy, boardState)) {
+                    tetramino.updateMino(dummy.getX(), dummy.getY(), dummy.getOrientation());
+                    break;
+                }
+            }
+        }
     }
 
     /***
@@ -182,4 +233,7 @@ public class TetraminoUpdater {
         return boardState[y].charAt(x) != ' ';
     }
 
+    public static void main(String[] args) {
+
+    }
 }

@@ -102,6 +102,10 @@ public class Tetramino {
         this.orientation = o;
     }
 
+    public void updateMino(int o) {
+        this.orientation = 0;
+    }
+
     public int getX() {
         return x;
     }
