@@ -20,3 +20,6 @@ B
 
 first column: (startOrientation, endOrientation)
 other columns: (changeInX, changeInY)
+
+A: JLSTZ
+B: I
