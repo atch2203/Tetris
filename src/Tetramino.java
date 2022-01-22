@@ -18,8 +18,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Tetramino {
-    private int x, y; // bottom left corner of the 4x4 grid  Should be SRS center?
-    //SRS center for s,z,l,j,t, and top left(-,-) for i and o
+    private int x, y; //SRS center for s,z,l,j,t, and top left(-,-) for i and o
     private int orientation; // 1 - 4, 1 being up and 2 being right
     private Type type;//Type of piece
 
@@ -103,7 +102,7 @@ public class Tetramino {
     }
 
     public void updateMino(int o) {
-        this.orientation = 0;
+        this.orientation = o;
     }
 
     public int getX() {

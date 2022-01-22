@@ -105,7 +105,6 @@ public class TetraminoUpdater {
 
     /***
      * moves the dummy tetramino into its position based on the kick table
-     * TODO implement kick table
      * @param dummy dummy tetramino
      * @param tetramino tetramino that is being kicked
      * @param boardState board state
@@ -114,6 +113,8 @@ public class TetraminoUpdater {
     public static void kick(Tetramino dummy, Tetramino tetramino, String[] boardState, String rotation) {
         int row = 0;
         int x, y;
+        int originalX = dummy.getX();
+        int originalY = dummy.getY();
         if (dummy.getType() == Tetramino.Type.O) { }
         else if (dummy.getType() == Tetramino.Type.I) {
             for (int i = 0; i < 8; i++) {
@@ -121,35 +122,44 @@ public class TetraminoUpdater {
                     row = i;
                     break;
                 } else {
-                    System.out.println("Error: rotation not found");
+//                    System.out.println("Error: rotation not found: " + rotation + " " + iTable[i][0]);
                 }
             }
             for (int i = 1; i < 6; i++) {
                 x = Integer.parseInt(iTable[row][i].split(",")[0]);
                 y = Integer.parseInt(iTable[row][i].split(",")[1]);
-                dummy.updateMino(dummy.getX() + x, dummy.getY() + y, dummy.getOrientation());
+//                System.out.println("x: " + x + ", y: " + y);
+                dummy.updateMino(originalX + x, originalY - y, dummy.getOrientation());
                 if (!checkCollision(dummy, boardState)) {
                     tetramino.updateMino(dummy.getX(), dummy.getY(), dummy.getOrientation());
                     break;
                 }
+                dummy.updateMino(originalX, originalY, dummy.getOrientation());
             }
         } else {
             for (int i = 0; i < 8; i++) {
                 if (otherTable[i][0].equals(rotation)) {
                     row = i;
+//                    System.out.println("row" + row);
                     break;
                 } else {
-                    System.out.println("Error: rotation not found");
+//                    System.out.println("Error: rotation not found: " + rotation + " " + otherTable[i][0]);
                 }
             }
             for (int i = 1; i < 6; i++) {
                 x = Integer.parseInt(otherTable[row][i].split(",")[0]);
                 y = Integer.parseInt(otherTable[row][i].split(",")[1]);
-                dummy.updateMino(dummy.getX() + x, dummy.getY() + y, dummy.getOrientation());
+//                System.out.println("x: " + x + ", y: " + y);
+                dummy.updateMino(originalX + x, originalY - y, dummy.getOrientation());
                 if (!checkCollision(dummy, boardState)) {
                     tetramino.updateMino(dummy.getX(), dummy.getY(), dummy.getOrientation());
+//                    System.out.println("originalX: " + originalX);
+//                    System.out.println("originalY: " + originalY);
+//                    System.out.println("new coords: " + dummy.getX() + "," + dummy.getY());
                     break;
                 }
+                dummy.updateMino(originalX, originalY, dummy.getOrientation());
+
             }
         }
     }
