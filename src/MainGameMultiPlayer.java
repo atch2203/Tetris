@@ -46,6 +46,7 @@ public class MainGameMultiPlayer {
                 while (!isPlaying);
                 while (user.board.moveR());
                 updateDisplay();
+                dasing = false;
             } catch (InterruptedException ignored) {
             }
         };
@@ -56,11 +57,12 @@ public class MainGameMultiPlayer {
                 while (!isPlaying);
                 while (user.board.moveL());
                 updateDisplay();
+                dasing = false;
             } catch (InterruptedException ignored) {
             }
         };
         private boolean dasing = false;
-        private Thread DASThread;
+        private Thread DASThread = new Thread(() -> {});
         private String dasSide = "left";
 
         public final Set<Integer> pressed = new HashSet<>();
@@ -79,6 +81,7 @@ public class MainGameMultiPlayer {
             pressed.add(e.getKeyCode());
             switch (e.getKeyCode()){
                 case KeyEvent.VK_RIGHT -> {
+                    DASThread.interrupt();
                     if(isPlaying) {
                         user.board.moveR();
                     }
@@ -87,6 +90,7 @@ public class MainGameMultiPlayer {
                     DASThread.start();
                 }
                 case KeyEvent.VK_LEFT -> {
+                    DASThread.interrupt();
                     if (isPlaying) {
                         user.board.moveL();
                     }

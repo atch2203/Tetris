@@ -30,7 +30,7 @@ public class GUI extends JPanel {
     private boolean isDone = false;
 
     private static final Font font = new Font(Font.MONOSPACED, Font.PLAIN, 30);
-    public static final int sqaureSize = 40;//size of single pixel
+    public static final int sqaureSize = 20;//size of single pixel
     public static final int colSize = sqaureSize * 5;//width of the queue + hold columns
 
     public GUI(Board board, Thread sendThread){

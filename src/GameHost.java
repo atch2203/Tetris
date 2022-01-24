@@ -14,7 +14,7 @@ public class GameHost extends MainGameMultiPlayer{
     public void start(int port) {
         try {
             serverSocket = new ServerSocket(port, 1, InetAddress.getLocalHost());
-            System.out.println(InetAddress.getLocalHost());
+            System.out.println(serverSocket.getInetAddress());
             clientSocket = serverSocket.accept();
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));

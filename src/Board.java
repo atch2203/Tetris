@@ -199,8 +199,19 @@ public class Board {
                 b2b = 0;
             }
             combo++;
-            attack = linesCleared;
+
+            attack = linesCleared - 1;
             totalAttack += attack;
+            while(!garbage.isEmpty() && attack > 0) {
+                attack -= garbage.poll();
+                if(attack < 0) {
+                    Queue<Integer> temp = new LinkedList<>();
+                    temp.add(-attack);
+                    temp.addAll(garbage);
+                    garbage = temp;
+                    attack = 0;
+                }
+            }
         }else{
             processGarbage();
             combo = 0;
@@ -213,7 +224,7 @@ public class Board {
      */
     public int getAttack() {
         int temp = attack;
-        attack = 0;
+        attack = 10;
         return temp;
     }
 
@@ -395,7 +406,7 @@ public class Board {
     }
 
     public Queue<Integer> getGarbage() {
-        return garbage;
+        return new LinkedList<>(garbage);
     }
 
     public boolean isLost() {

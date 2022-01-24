@@ -216,9 +216,9 @@ public class TetraminoUpdater {
      */
     public static void lock(Tetramino tetramino, String[] boardState) {
         for (int i = 0; i < 4; i++) {
-            String line = boardState[tetramino.getCoords()[i][1]];
+            String line = boardState[Math.max(tetramino.getCoords()[i][1], 0)];
             line = line.substring(0, tetramino.getCoords()[i][0]) + tetramino.getType().getMino() + line.substring(tetramino.getCoords()[i][0] + 1);
-            boardState[tetramino.getCoords()[i][1]] = line;
+            boardState[Math.max(tetramino.getCoords()[i][1], 0)] = line;
         }
     }
 
@@ -240,7 +240,7 @@ public class TetraminoUpdater {
      * @return if the coordinate on the board is filled
      */
     private static boolean isFilled(int x, int y, String[] boardState) {
-        return boardState[y].charAt(x) != ' ';
+        return boardState[Math.max(y, 0)].charAt(x) != ' ';
     }
 
     public static void main(String[] args) {
