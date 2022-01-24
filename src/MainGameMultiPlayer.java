@@ -109,6 +109,7 @@ public class MainGameMultiPlayer {
                     case KeyEvent.VK_X -> user.board.clockwise();
                     case KeyEvent.VK_Z -> user.board.counterclockwise();
                     case KeyEvent.VK_A -> user.board.rotate180();
+                    case KeyEvent.VK_D -> user.board.displayGame();
                     case KeyEvent.VK_DOWN -> user.board.softDrop();
                     case KeyEvent.VK_SHIFT -> user.board.hold();
                 }
