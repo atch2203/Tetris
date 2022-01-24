@@ -240,10 +240,6 @@ public class TetraminoUpdater {
      * @return if the coordinate on the board is filled
      */
     private static boolean isFilled(int x, int y, String[] boardState) {
-        return boardState[Math.max(y, 0)].charAt(x) != ' ';
-    }
-
-    public static void main(String[] args) {
-
+        return boardState[Math.max(y, 0)].charAt(Math.max(Math.min(x, 11), 0)) != ' ';
     }
 }

@@ -35,7 +35,7 @@ public class Board {
     private int score = 0;
     private int b2b = 0;
     private int combo = 0;
-    private Queue<Integer> garbage = new LinkedList<>();
+    volatile private Queue<Integer> garbage = new LinkedList<>();
     private int attack = 0;
     private int totalAttack = 0;
     private int piecesPlaced = 0;
@@ -200,7 +200,7 @@ public class Board {
             }
             combo++;
 
-            attack = linesCleared - 1;
+            attack = linesCleared - 2 + combo;
             totalAttack += attack;
             while(!garbage.isEmpty() && attack > 0) {
                 attack -= garbage.poll();
@@ -224,7 +224,7 @@ public class Board {
      */
     public int getAttack() {
         int temp = attack;
-        attack = 10;
+        attack = 0;
         return temp;
     }
 
@@ -406,7 +406,7 @@ public class Board {
     }
 
     public Queue<Integer> getGarbage() {
-        return new LinkedList<>(garbage);
+        return garbage;//new LinkedList<>(garbage);
     }
 
     public boolean isLost() {

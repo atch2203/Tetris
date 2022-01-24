@@ -46,8 +46,9 @@ public class MainGameMultiPlayer {
                 while (!isPlaying);
                 while (user.board.moveR());
                 updateDisplay();
-                dasing = false;
+                Thread.sleep(1000000);
             } catch (InterruptedException ignored) {
+                dasing = false;
             }
         };
         private final Runnable leftDAS = () -> {
@@ -57,10 +58,12 @@ public class MainGameMultiPlayer {
                 while (!isPlaying);
                 while (user.board.moveL());
                 updateDisplay();
-                dasing = false;
+                Thread.sleep(1000000);
             } catch (InterruptedException ignored) {
+                dasing = false;
             }
         };
+
         private boolean dasing = false;
         private Thread DASThread = new Thread(() -> {});
         private String dasSide = "left";
@@ -108,6 +111,9 @@ public class MainGameMultiPlayer {
                     case KeyEvent.VK_A -> user.board.rotate180();
                     case KeyEvent.VK_DOWN -> user.board.softDrop();
                     case KeyEvent.VK_SHIFT -> user.board.hold();
+                }
+                if(pressed.contains(KeyEvent.VK_DOWN)){
+                    user.board.softDrop();
                 }
                 moveRotate();
                 user.keyPressed();
