@@ -46,7 +46,6 @@ public class Board {
     private String flavorText = "";
 
     private static String importantCorner = "1+---2+-++3++-+4-+--";
-    private static String nonImportantCorner = "1++-+2---+3+---4+++-";
 
 
     public Board(int seed) {//initializes the board
@@ -152,7 +151,7 @@ public class Board {
      */
     private void insertMino(Tetramino tetramino, String[] board, String character){
         for (int i = 0; i < 4; i++) {//inserts the mino into the display board
-            String line = board[tetramino.getCoords()[i][1]];
+            String line = board[Math.max(0, tetramino.getCoords()[i][1])];
             line = line.substring(0, tetramino.getCoords()[i][0]) + character + line.substring(tetramino.getCoords()[i][0] + 1);
             board[tetramino.getCoords()[i][1]] = line;
         }
@@ -304,7 +303,7 @@ public class Board {
         if(cornerCounter < 3){
             return 0;
         }
-        int startIndex = importantCorner.indexOf(tetramino.getOrientation());
+        int startIndex = importantCorner.indexOf(Integer.toString(tetramino.getOrientation()));
         int importantCounter = 0;
         String facingCorners = importantCorner.substring(startIndex + 1, startIndex + 5);//++-+
         for(int i = 0; i <= 1; i++) {
@@ -361,11 +360,13 @@ public class Board {
 
     //moves tetramino 1 left
     public boolean moveL() {
+        isTSpin = 0;
         return TetraminoUpdater.moveX(currentMino, board, -1);
     }
 
     //moves tetramino 1 right
     public boolean moveR() {
+        isTSpin = 0;
         return TetraminoUpdater.moveX(currentMino, board, 1);
     }
 
