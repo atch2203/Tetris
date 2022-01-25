@@ -32,7 +32,8 @@ public class Board {
     private boolean hasJustLost = false;
     private int seed = 0;
 
-    private boolean wasLastSpin = false;
+    private int isTSpin = 0;
+    private int moveY = 0;
     private int score = 0;
     private int b2b = -1;
     private int combo = -1;
@@ -43,6 +44,9 @@ public class Board {
     private long startTime = 0;
     private String sideText = "";
     private String flavorText = "";
+
+    private static String importantCorner = "1+---2+-++3++-+4-+--";
+    private static String nonImportantCorner = "1++-+2---+3+---4+++-";
 
 
     public Board(int seed) {//initializes the board
@@ -174,8 +178,10 @@ public class Board {
             sideText = "";
             score += linesCleared;
 
-            if(checkTSpin(currentMino, board)){
+            if(isTSpin == 2){
                 sideText += "T spin ";
+            }else if(isTSpin == 1){
+                sideText += "T spin mini ";
             }
             sideText += switch (linesCleared) {
                 case 1 -> "Single";
@@ -183,12 +189,12 @@ public class Board {
                 case 3 -> "Triple";
                 case 4 -> "Quad";
                 default -> throw new IllegalStateException("Unexpected value: " + linesCleared);
-            };
+            } + "\n";
             if (board[22].equals("|          |")) {
                 sideText += "\nAll Clear";
                 attack += 10;
             }
-            if(linesCleared == 4 || checkTSpin(currentMino, board)){
+            if(linesCleared == 4 || isTSpin != 0){
                 b2b++;
             }else{
                 b2b = -1;
@@ -200,7 +206,7 @@ public class Board {
             if(b2b > 0){
                 sideText += b2b + "x b2b\n";
             }
-            attack = checkTSpin(currentMino, board) ? linesCleared * 2 - 1 : linesCleared - 1 ;
+            attack = isTSpin == 2 ? linesCleared * 2 - 1 : linesCleared - 1 ;
             attack += (int)(2 * Math.log(Math.max(1, combo))) + Math.min(4, (int)(Math.sqrt(Math.max(0, b2b))));
             totalAttack += attack;
             while(!garbage.isEmpty() && attack > 0) {
@@ -214,6 +220,13 @@ public class Board {
                 }
             }
         }else{
+            if(isTSpin == 2){
+                sideText = "";
+                sideText += "T spin";
+            }else if(isTSpin == 1){
+                sideText = "";
+                sideText += "T spin mini";
+            }
             processGarbage();
             combo = -1;
         }
@@ -266,11 +279,11 @@ public class Board {
      * @param board current board state
      * @return whether the tetramino is considered a t spin
      */
-    private boolean checkTSpin(Tetramino tetramino, String[] board){
+    private int checkTSpin(Tetramino tetramino, String[] board){
         if(tetramino.getType() != Tetramino.Type.T){
-            return false;
+            return 0;
         }
-        //stsd and fin special cases
+
         int cornerCounter = 0;
         if (TetraminoUpdater.isFilled(tetramino.getX() + 1, tetramino.getY() + 1, board)) {
             System.out.println(board[tetramino.getY() + 1].charAt(tetramino.getX() + 1));
@@ -288,8 +301,22 @@ public class Board {
             System.out.println(board[tetramino.getY() - 1].charAt(tetramino.getX() - 1));
             cornerCounter++;
         }
-        System.out.println(cornerCounter);
-        return cornerCounter >= 3;
+        if(cornerCounter < 3){
+            return 0;
+        }
+        int startIndex = importantCorner.indexOf(tetramino.getOrientation());
+        int importantCounter = 0;
+        String facingCorners = importantCorner.substring(startIndex + 1, startIndex + 5);//++-+
+        for(int i = 0; i <= 1; i++) {
+            if (TetraminoUpdater.isFilled(tetramino.getX() + (facingCorners.charAt(i * 2) == '+' ? 1 : -1), tetramino.getY() + (facingCorners.charAt(i * 2 + 1) == '+' ? 1 : -1), board)) {
+                importantCounter++;
+            }
+        }
+        if(importantCounter >= 2 || moveY >= 2){
+            return 2;
+        }else{
+            return 1;
+        }
     }
 
     /***
@@ -334,36 +361,39 @@ public class Board {
 
     //moves tetramino 1 left
     public boolean moveL() {
-        wasLastSpin = false;
         return TetraminoUpdater.moveX(currentMino, board, -1);
     }
 
     //moves tetramino 1 right
     public boolean moveR() {
-        wasLastSpin = false;
         return TetraminoUpdater.moveX(currentMino, board, 1);
     }
 
     //rotates tetramino clockwise
     public void clockwise() {
-        wasLastSpin = true;
+        moveY = currentMino.getY();
         TetraminoUpdater.rotate(currentMino, board, 1);
+        moveY = currentMino.getY() - moveY;
+        isTSpin = checkTSpin(currentMino, board);
     }
 
     //rotates tetramino counterclockwise
     public void counterclockwise() {
-        wasLastSpin = true;
+        moveY = currentMino.getY();
         TetraminoUpdater.rotate(currentMino, board, -1);
+        moveY = currentMino.getY() - moveY;
+        isTSpin = checkTSpin(currentMino, board);
     }
 
     //rotates mino 180 degrees
     public void rotate180() {
-        wasLastSpin = true;
+        moveY = currentMino.getY();
         TetraminoUpdater.rotate(currentMino, board, 2);
+        moveY = currentMino.getY() - moveY;
+        isTSpin = checkTSpin(currentMino, board);
     }
 
     public void softDrop() {
-        wasLastSpin = false;
         TetraminoUpdater.softDrop(currentMino, board);
     }
 
