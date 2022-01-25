@@ -271,7 +271,25 @@ public class Board {
             return false;
         }
         //stsd and fin special cases
-        return true;
+        int cornerCounter = 0;
+        if (TetraminoUpdater.isFilled(tetramino.getX() + 1, tetramino.getY() + 1, board)) {
+            System.out.println(board[tetramino.getY() + 1].charAt(tetramino.getX() + 1));
+            cornerCounter++;
+        }
+        if (TetraminoUpdater.isFilled(tetramino.getX() + 1, tetramino.getY() - 1, board)) {
+            System.out.println(board[tetramino.getY() + 1].charAt(tetramino.getX() - 1));
+            cornerCounter++;
+        }
+        if (TetraminoUpdater.isFilled(tetramino.getX() - 1, tetramino.getY() + 1, board)) {
+            System.out.println(board[tetramino.getY() - 1].charAt(tetramino.getX() + 1));
+            cornerCounter++;
+        }
+        if (TetraminoUpdater.isFilled(tetramino.getX() - 1, tetramino.getY() - 1, board)) {
+            System.out.println(board[tetramino.getY() - 1].charAt(tetramino.getX() - 1));
+            cornerCounter++;
+        }
+        System.out.println(cornerCounter);
+        return cornerCounter >= 3;
     }
 
     /***
