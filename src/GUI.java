@@ -96,6 +96,7 @@ public class GUI extends JPanel {
 
     public void updateDisplay() {
         boardGUI.setBoard(board.getFullBoard());
+        boardGUI.setGarbageQueue(board.getGarbage());
         boardGUI.updateUI();
         holdGUI.setMino(board.getHold());
         holdGUI.updateUI();

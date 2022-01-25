@@ -32,9 +32,10 @@ public class Board {
     private boolean hasJustLost = false;
     private int seed = 0;
 
+    private boolean wasLastSpin = false;
     private int score = 0;
-    private int b2b = 0;
-    private int combo = 0;
+    private int b2b = -1;
+    private int combo = -1;
     volatile private Queue<Integer> garbage = new LinkedList<>();
     private int attack = 0;
     private int totalAttack = 0;
@@ -172,13 +173,7 @@ public class Board {
         if (linesCleared > 0) {
             sideText = "";
             score += linesCleared;
-            if(combo > 0){
-                sideText += combo + " combo\n";
-            }
 
-            if(b2b > 0 && (linesCleared == 4 || checkTSpin(currentMino, board))){
-                sideText += b2b + "x b2b\n";
-            }
             if(checkTSpin(currentMino, board)){
                 sideText += "T spin ";
             }
@@ -191,16 +186,22 @@ public class Board {
             };
             if (board[22].equals("|          |")) {
                 sideText += "\nAll Clear";
-                score += 10;
+                attack += 10;
             }
             if(linesCleared == 4 || checkTSpin(currentMino, board)){
                 b2b++;
             }else{
-                b2b = 0;
+                b2b = -1;
             }
             combo++;
-
-            attack = linesCleared - 2 + combo;
+            if(combo > 0){
+                sideText += combo + " combo\n";
+            }
+            if(b2b > 0){
+                sideText += b2b + "x b2b\n";
+            }
+            attack = checkTSpin(currentMino, board) ? linesCleared * 2 - 1 : linesCleared - 1 ;
+            attack += (int)(2 * Math.log(Math.max(1, combo))) + Math.min(4, (int)(Math.sqrt(Math.max(0, b2b))));
             totalAttack += attack;
             while(!garbage.isEmpty() && attack > 0) {
                 attack -= garbage.poll();
@@ -214,7 +215,7 @@ public class Board {
             }
         }else{
             processGarbage();
-            combo = 0;
+            combo = -1;
         }
     }
 
@@ -315,30 +316,36 @@ public class Board {
 
     //moves tetramino 1 left
     public boolean moveL() {
+        wasLastSpin = false;
         return TetraminoUpdater.moveX(currentMino, board, -1);
     }
 
     //moves tetramino 1 right
     public boolean moveR() {
+        wasLastSpin = false;
         return TetraminoUpdater.moveX(currentMino, board, 1);
     }
 
     //rotates tetramino clockwise
     public void clockwise() {
+        wasLastSpin = true;
         TetraminoUpdater.rotate(currentMino, board, 1);
     }
 
     //rotates tetramino counterclockwise
     public void counterclockwise() {
+        wasLastSpin = true;
         TetraminoUpdater.rotate(currentMino, board, -1);
     }
 
     //rotates mino 180 degrees
     public void rotate180() {
+        wasLastSpin = true;
         TetraminoUpdater.rotate(currentMino, board, 2);
     }
 
     public void softDrop() {
+        wasLastSpin = false;
         TetraminoUpdater.softDrop(currentMino, board);
     }
 
