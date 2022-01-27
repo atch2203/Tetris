@@ -30,29 +30,33 @@ public class Board {
     private Random garbageGenerator;
     private boolean lost = false;
     private boolean hasJustLost = false;
-    private int seed = 0;
+    private final boolean isSinglePlayer, isUser;
 
     private int isTSpin = 0;
     private int moveY = 0;
-    private int score = 0;
     private int b2b = -1;
     private int combo = -1;
     volatile private Queue<Integer> garbage = new LinkedList<>();
     private int attack = 0;
-    private int totalAttack = 0;
-    private int piecesPlaced = 0;
-    private long startTime = 0;
+    private volatile int totalAttack = 0;
+    private volatile int totalLines = 0;
+    private volatile int piecesPlaced = 0;
+    private volatile long startTime = 0;
+    private volatile long endTime = 0;
     private String sideText = "";
-    private String flavorText = "";
+    private volatile String flavorText = "";
+    private String multiplayerText = "";
+    Thread timeUpdater = new Thread();
 
     private static String importantCorner = "1+---2+-++3++-+4-+--";
 
-
-    public Board(int seed) {//initializes the board
+    public Board(int seed, boolean isSinglePlayer, boolean isUser) {//initializes the board
         reset(seed);
+        this.isSinglePlayer = isSinglePlayer;
+        this.isUser = isUser;
     }
 
-    public void start(){
+    public void start() {
 
     }
 
@@ -70,8 +74,36 @@ public class Board {
         currentMino = queue.poll();
         hold = null;
         startTime = System.currentTimeMillis();
+        endTime = 0;
         garbage = new LinkedList<>();
         lost = false;
+        isTSpin = 0;
+        moveY = 0;
+        b2b = -1;
+        combo = -1;
+        attack = 0;
+        totalAttack = 0;
+        totalLines = 0;
+        piecesPlaced = 0;
+        sideText = "";
+        if(isUser) {
+            timeUpdater = new Thread(() -> {
+                while (true) {
+                    flavorText = "pps: " + String.format("%.2f", piecesPlaced * 1000.0 / ((endTime == 0 ? System.currentTimeMillis() : endTime) - startTime)) + "\n" +
+                            "apm: " + String.format("%.2f", totalAttack * 60000.0 / ((endTime == 0 ? System.currentTimeMillis() : endTime) - startTime));
+                    if (isSinglePlayer) {
+                        flavorText += "\nlines: " + totalLines + "/40\n" +
+                                "time: " + (((endTime == 0 ? System.currentTimeMillis() : endTime) - startTime) / 1000.0);
+                    }
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+            });
+            timeUpdater.start();
+        }
     }
 
 
@@ -100,7 +132,7 @@ public class Board {
             queueNum++;
             output.append('\n');
         }
-        output.append(sideText).append('\n').append("score: ").append(score);
+        output.append(sideText);
         sideText = "";
         return output.toString();
     }
@@ -109,13 +141,13 @@ public class Board {
      * gets board with current mino and preview drawn
      * @return board with mino drawn
      */
-    public String[] getFullBoard(){
-        if(lost){
+    public String[] getFullBoard() {
+        if (lost) {
             return board;
         }
         String[] boardCopy = board.clone();
 
-        if(getHeight() < 8){//displays the next tetramino if the board is getting high
+        if (getHeight() < 8) {//displays the next tetramino if the board is getting high
             preview = new Tetramino(queue.peek());
             insertMino(preview, boardCopy, "N");
         }
@@ -129,13 +161,13 @@ public class Board {
 
         int garbageBottom = 22;
         int garbageOverlap = 0;
-        for(int g : garbage) {
+        for (int g : garbage) {
 
             for (int i = garbageBottom; i > Math.max(garbageBottom - g, 0); i--) {
                 boardCopy[i] = "W" + boardCopy[i].substring(1);
             }
             garbageBottom -= g;
-            if(garbageBottom < 0){
+            if (garbageBottom < 0) {
                 break;
             }
         }
@@ -145,11 +177,11 @@ public class Board {
 
     /***
      * Inserts mino into the board
-      * @param tetramino mino to display
+     * @param tetramino mino to display
      * @param board current board
      * @param character the character to use when inserting mino
      */
-    private void insertMino(Tetramino tetramino, String[] board, String character){
+    private void insertMino(Tetramino tetramino, String[] board, String character) {
         for (int i = 0; i < 4; i++) {//inserts the mino into the display board
             String line = board[Math.max(0, tetramino.getCoords()[i][1])];
             line = line.substring(0, tetramino.getCoords()[i][0]) + character + line.substring(tetramino.getCoords()[i][0] + 1);
@@ -175,11 +207,15 @@ public class Board {
         }
         if (linesCleared > 0) {
             sideText = "";
-            score += linesCleared;
+            totalLines += linesCleared;
+            if (endTime == 0 && totalLines >= 40 && isSinglePlayer) {
+                endTime = System.currentTimeMillis();
+                timeUpdater.interrupt();
+            }
 
-            if(isTSpin == 2){
+            if (isTSpin == 2) {
                 sideText += "T spin ";
-            }else if(isTSpin == 1){
+            } else if (isTSpin == 1) {
                 sideText += "T spin mini ";
             }
             sideText += switch (linesCleared) {
@@ -193,24 +229,24 @@ public class Board {
                 sideText += "\nAll Clear";
                 attack += 10;
             }
-            if(linesCleared == 4 || isTSpin != 0){
+            if (linesCleared == 4 || isTSpin != 0) {
                 b2b++;
-            }else{
+            } else {
                 b2b = -1;
             }
             combo++;
-            if(combo > 0){
+            if (combo > 0) {
                 sideText += combo + " combo\n";
             }
-            if(b2b > 0){
+            if (b2b > 0) {
                 sideText += b2b + "x b2b\n";
             }
-            attack = isTSpin == 2 ? linesCleared * 2 - 1 : linesCleared - 1 ;
-            attack += (int)(2 * Math.log(Math.max(1, combo))) + Math.min(4, (int)(Math.sqrt(Math.max(0, b2b))));
+            attack = isTSpin == 2 ? linesCleared * 2 - 1 : linesCleared - 1;
+            attack += (int) (2 * Math.log(Math.max(1, combo))) + Math.min(4, (int) (Math.sqrt(Math.max(0, b2b))));
             totalAttack += attack;
-            while(!garbage.isEmpty() && attack > 0) {
+            while (!garbage.isEmpty() && attack > 0) {
                 attack -= garbage.poll();
-                if(attack < 0) {
+                if (attack < 0) {
                     Queue<Integer> temp = new LinkedList<>();
                     temp.add(-attack);
                     temp.addAll(garbage);
@@ -218,17 +254,18 @@ public class Board {
                     attack = 0;
                 }
             }
-        }else{
-            if(isTSpin == 2){
+        } else {
+            if (isTSpin == 2) {
                 sideText = "";
                 sideText += "T spin";
-            }else if(isTSpin == 1){
+            } else if (isTSpin == 1) {
                 sideText = "";
                 sideText += "T spin mini";
             }
             processGarbage();
             combo = -1;
         }
+
     }
 
     /***
@@ -244,16 +281,16 @@ public class Board {
     /***
      * processes the garbage and adds it to the board
      */
-    private void processGarbage(){
+    private void processGarbage() {
         int garbageHeight;
-        try{
+        try {
             garbageHeight = garbage.poll();
-        }catch(NullPointerException e){
+        } catch (NullPointerException e) {
             return;
         }
 
         //move board up
-        for(int i = garbageHeight; i < 23; i++){
+        for (int i = garbageHeight; i < 23; i++) {
             board[i - garbageHeight] = board[i];
         }
 
@@ -264,12 +301,12 @@ public class Board {
         //Add garbage
         int garbageColumn = garbageGenerator.nextInt(10) + 1;
         String garbageLine = "|GGGGGGGGGG|".substring(0, garbageColumn) + " " + "|GGGGGGGGGG|".substring(garbageColumn + 1);
-        for(int i = 22; i > 22 - garbageHeight; i--){
+        for (int i = 22; i > 22 - garbageHeight; i--) {
             board[i] = garbageLine;
         }
 
         //move tetramino back down
-        while(currentMino.getY() <= oldMinoSpot && TetraminoUpdater.moveY(currentMino, board, 1));
+        while (currentMino.getY() <= oldMinoSpot && TetraminoUpdater.moveY(currentMino, board, 1)) ;
     }
 
     /***
@@ -278,42 +315,38 @@ public class Board {
      * @param board current board state
      * @return whether the tetramino is considered a t spin
      */
-    private int checkTSpin(Tetramino tetramino, String[] board){
-        if(tetramino.getType() != Tetramino.Type.T){
+    private int checkTSpin(Tetramino tetramino, String[] board) {
+        if (tetramino.getType() != Tetramino.Type.T) {
             return 0;
         }
 
         int cornerCounter = 0;
         if (TetraminoUpdater.isFilled(tetramino.getX() + 1, tetramino.getY() + 1, board)) {
-            System.out.println(board[tetramino.getY() + 1].charAt(tetramino.getX() + 1));
             cornerCounter++;
         }
         if (TetraminoUpdater.isFilled(tetramino.getX() + 1, tetramino.getY() - 1, board)) {
-            System.out.println(board[tetramino.getY() + 1].charAt(tetramino.getX() - 1));
             cornerCounter++;
         }
         if (TetraminoUpdater.isFilled(tetramino.getX() - 1, tetramino.getY() + 1, board)) {
-            System.out.println(board[tetramino.getY() - 1].charAt(tetramino.getX() + 1));
             cornerCounter++;
         }
         if (TetraminoUpdater.isFilled(tetramino.getX() - 1, tetramino.getY() - 1, board)) {
-            System.out.println(board[tetramino.getY() - 1].charAt(tetramino.getX() - 1));
             cornerCounter++;
         }
-        if(cornerCounter < 3){
+        if (cornerCounter < 3) {
             return 0;
         }
         int startIndex = importantCorner.indexOf(Integer.toString(tetramino.getOrientation()));
         int importantCounter = 0;
         String facingCorners = importantCorner.substring(startIndex + 1, startIndex + 5);//++-+
-        for(int i = 0; i <= 1; i++) {
+        for (int i = 0; i <= 1; i++) {
             if (TetraminoUpdater.isFilled(tetramino.getX() + (facingCorners.charAt(i * 2) == '+' ? 1 : -1), tetramino.getY() + (facingCorners.charAt(i * 2 + 1) == '+' ? 1 : -1), board)) {
                 importantCounter++;
             }
         }
-        if(importantCounter >= 2 || moveY >= 2){
+        if (importantCounter >= 2 || moveY >= 2) {
             return 2;
-        }else{
+        } else {
             return 1;
         }
     }
@@ -322,7 +355,8 @@ public class Board {
      * Generates the next mino and places it in the queue, and then polls the next mino to use
      */
     public void nextMino() {
-        if (TetraminoUpdater.checkCollision(queue.peek(), board) || getHeight() < 0) {
+        if (TetraminoUpdater.checkCollision(queue.peek(), board)) {
+            timeUpdater.interrupt();
             lost = true;
             hasJustLost = true;
             for (int i = 0; i < 23; i++) {
@@ -340,9 +374,9 @@ public class Board {
      * gets the height of the maximum piece on the board
      * @return the height, with 0 being highest and 24 being lowest
      */
-    public int getHeight(){
-        for(int i = 0; i < 24; i++){
-            if(!board[i].equals("|          |")){
+    public int getHeight() {
+        for (int i = 0; i < 24; i++) {
+            if (!board[i].equals("|          |")) {
                 return i;
             }
         }
@@ -399,12 +433,13 @@ public class Board {
     }
 
     public void hardDrop() {
+        piecesPlaced++;
         TetraminoUpdater.hardDrop(currentMino, board);
         updateLines();
         nextMino();
     }
 
-    public boolean touchingGround(){
+    public boolean touchingGround() {
         Tetramino temp = new Tetramino(currentMino);
         TetraminoUpdater.softDrop(temp, board);
         return temp.getY() == currentMino.getY();
@@ -458,7 +493,7 @@ public class Board {
     }
 
     public String getSideText() {
-        return flavorText + "\n\n" + sideText;
+        return multiplayerText + "\n\n" + flavorText + "\n\n" + sideText;
     }
 
     public Queue<Integer> getGarbage() {
@@ -469,19 +504,27 @@ public class Board {
         return lost;
     }
 
-    public boolean hasJustLost(){
-        if(hasJustLost){
+    public boolean hasJustLost() {
+        if (hasJustLost) {
             hasJustLost = false;
             return true;
         }
         return false;
     }
 
-    public void setFlavorText(String flavorText){
-        this.flavorText = flavorText;
+    public void setMultiplayerText(String multiplayerText) {
+        this.multiplayerText = multiplayerText;
     }
 
     public void setSideText(String sideText) {
         this.sideText = sideText;
+    }
+
+    public boolean isUser(){
+        return isUser;
+    }
+
+    public void stopTimer(){
+        timeUpdater.interrupt();
     }
 }

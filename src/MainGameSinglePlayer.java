@@ -23,29 +23,35 @@ public class MainGameSinglePlayer {
     static JFrame window;
 
     static KeyListener controls = new KeyListener() {//key listener for user input
-        final Runnable rightDAS = () -> {
+        private final Runnable rightDAS = () -> {
             try {
                 Thread.sleep(DAS);
                 dasing = true;
-                while (game.board.moveR()) ;
+                while (game.board.moveR());
                 game.updateDisplay();
+                Thread.sleep(1000000);
             } catch (InterruptedException ignored) {
+                dasing = false;
             }
         };
-        final Runnable leftDAS = () -> {
+        private final Runnable leftDAS = () -> {
             try {
                 Thread.sleep(DAS);
                 dasing = true;
-                while (game.board.moveL()) ;
+                while (game.board.moveL());
                 game.updateDisplay();
+                Thread.sleep(1000000);
             } catch (InterruptedException ignored) {
+                dasing = false;
             }
         };
-        private boolean dasing = false;
-        Thread DASThread;
-        String dasSide = "left";
 
-        final Set<Integer> pressed = new HashSet<>();
+        private boolean dasing = false;
+        private Thread DASThread = new Thread(() -> {});
+        private String dasSide = "left";
+
+        public final Set<Integer> pressed = new HashSet<>();
+
 
         @Override
         public void keyTyped(KeyEvent e) {
@@ -58,6 +64,8 @@ public class MainGameSinglePlayer {
                 return;
             }
 
+
+            pressed.add(e.getKeyCode());
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_SPACE -> game.board.hardDrop();
                 case KeyEvent.VK_X -> game.board.clockwise();
@@ -65,12 +73,14 @@ public class MainGameSinglePlayer {
                 case KeyEvent.VK_A -> game.board.rotate180();
                 case KeyEvent.VK_R -> game.board.reset(new Random().nextInt());
                 case KeyEvent.VK_RIGHT -> {
+                    DASThread.interrupt();
                     game.board.moveR();
                     dasSide = "right";
                     DASThread = new Thread(rightDAS);
                     DASThread.start();
                 }
                 case KeyEvent.VK_LEFT -> {
+                    DASThread.interrupt();
                     game.board.moveL();
                     dasSide = "left";
                     DASThread = new Thread(leftDAS);
@@ -81,7 +91,6 @@ public class MainGameSinglePlayer {
             }
             moveRotate();
 
-            pressed.add(e.getKeyCode());
 
             game.keyPressed();
             game.update();
@@ -110,9 +119,10 @@ public class MainGameSinglePlayer {
             }
         }
     };
+
     public static void main(String[] args) {
         window = new JFrame();
-        game = new GUI(new Board(new Random().nextInt()));
+        game = new GUI(new Board(new Random().nextInt(), true, true));
         game.update();
         window.add(game);
         window.setSize(game.getPreferredSize());
@@ -120,7 +130,6 @@ public class MainGameSinglePlayer {
         window.addKeyListener(controls);
         window.pack();
         window.setVisible(true);
-
     }
 
 

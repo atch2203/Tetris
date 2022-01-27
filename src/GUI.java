@@ -23,14 +23,14 @@ public class GUI extends JPanel {
     public final JLabel text;
 
     private long placedTime = 0;
-    private long gravityTime = 1000;
+    private final long gravityTime = 1000;
     private boolean gravityDone = true;
     private Thread autoPlace, gravity;
     private Thread sendThread;
     private boolean isDone = false;
 
-    private static final Font font = new Font(Font.MONOSPACED, Font.PLAIN, 30);
-    public static final int sqaureSize = 20;//size of single pixel
+    private static final Font font = new Font(Font.MONOSPACED, Font.PLAIN, 20);
+    public static final int sqaureSize = 30;//size of single pixel
     public static final int colSize = sqaureSize * 5;//width of the queue + hold columns
 
     public GUI(Board board, Thread sendThread){
@@ -82,6 +82,18 @@ public class GUI extends JPanel {
         this.setPreferredSize(new Dimension(sqaureSize * 30, sqaureSize * 30));
 
         updateDisplay();
+        if(board.isUser()) {
+            new Thread(() -> {
+                while (true) {
+                    text.setText("<html>" + board.getSideText().replaceAll("\n", "<br />") + "</html>");
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+
+                    }
+                }
+            }).start();
+        }
     }
 
     public void setFlavorText(String s){
@@ -102,7 +114,6 @@ public class GUI extends JPanel {
         holdGUI.updateUI();
         queueGUI.setQueue(board.getQueue());
         queueGUI.updateUI();
-        text.setText("<html>" + board.getSideText().replaceAll("\n", "<br />") + "</html>");
     }
 
     public void keyPressed(){
@@ -212,7 +223,6 @@ public class GUI extends JPanel {
     public static class HoldGUI extends JPanel {
 
         private Tetramino mino = null;
-        private int center = colSize / 2 - sqaureSize / 2;
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -222,7 +232,7 @@ public class GUI extends JPanel {
             }
             g.setColor(mino.getType().color);
 
-            center = switch (mino.getType()) {
+            int center = switch (mino.getType()) {
                 case I, O -> colSize / 2 - sqaureSize;
                 default -> colSize / 2 - sqaureSize / 2;
             };

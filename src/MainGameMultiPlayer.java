@@ -18,6 +18,7 @@ public class MainGameMultiPlayer {
     int seed = 0;
     private boolean isFirst = true;
     private boolean isPlaying = false;
+    private volatile boolean isSending = false, isSendingText = false;
 
     KeyListener startControls = new KeyListener() {
         @Override
@@ -180,11 +181,11 @@ public class MainGameMultiPlayer {
         new Thread(() -> {
             try{
                 for(int i = 3; i > 0; i--){
-                    user.board.setFlavorText(Integer.toString(i));
+                    user.board.setMultiplayerText(Integer.toString(i));
                     updateDisplay();
                     Thread.sleep(1000);
                 }
-                user.board.setFlavorText("");
+                user.board.setMultiplayerText("");
                 updateDisplay();
                 user.update();
                 isPlaying = true;
@@ -196,7 +197,7 @@ public class MainGameMultiPlayer {
     }
     
     protected void setUpGame(boolean initiator){
-        user = new GUI(new Board(seed), new Thread(() ->{
+        user = new GUI(new Board(seed, false, true), new Thread(() ->{
             while(true) {
                 try {
                     Thread.sleep(1000000);
@@ -205,12 +206,12 @@ public class MainGameMultiPlayer {
                 }
             }
         }));
-        other = new GUI(new Board(seed));
+        other = new GUI(new Board(seed, false, false));
         window = new JFrame();
         window.setLayout(new GridLayout(1, 2));
         window.add(user);
         window.add(other);
-        user.board.setFlavorText("press r to start game");
+        user.board.setMultiplayerText("press r to start game");
         updateDisplay();
 
 
@@ -218,6 +219,21 @@ public class MainGameMultiPlayer {
         window.setVisible(true);
 
         window.addKeyListener(startControls);
+        new Thread(() -> {
+            while(true) {
+                while (isSending);
+                isSendingText = true;
+                out.println("text");
+                out.println(user.board.getSideText());
+                out.println("end text");
+                isSendingText = false;
+                try{
+                    Thread.sleep(100);
+                }catch(InterruptedException e){
+
+                }
+            }
+        }).start();
     }
     
     protected void processInput(){
@@ -272,7 +288,8 @@ public class MainGameMultiPlayer {
                 }
                 case "lost" -> {
                     user.board.setSideText("");
-                    user.board.setFlavorText("1st\n\npress r to replay");
+                    user.board.setMultiplayerText("1st\n\npress r to replay");
+                    user.board.stopTimer();
                     updateDisplay();
                     isPlaying = false;
                     window.addKeyListener(startControls);
@@ -287,6 +304,8 @@ public class MainGameMultiPlayer {
     }
 
     private synchronized void outputData(){
+        while(isSendingText);
+        isSending = true;
         out.println("board");
         String[] userBoard = user.board.getFullBoard();
         for(int i = 0; i < 24; i++){
@@ -308,9 +327,6 @@ public class MainGameMultiPlayer {
             out.println(g);
         }
         out.println("end garbage");
-        out.println("text");
-        out.println(user.board.getSideText());
-        out.println("end text");
         int attack = user.board.getAttack();
         if(attack != 0){
             out.println("garbage");
@@ -318,13 +334,14 @@ public class MainGameMultiPlayer {
         }
         if(user.board.hasJustLost()){
             user.board.setSideText("");
-            user.board.setFlavorText("2nd\n\npress r to replay");
+            user.board.setMultiplayerText("2nd\n\npress r to replay");
             updateDisplay();
             isPlaying = false;
             window.addKeyListener(startControls);
             user.setDone(true);
             out.println("lost");
         }
+        isSending = false;
     }
 
     private void updateDisplay(){
