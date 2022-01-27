@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class GameClient extends MainGameMultiPlayer {
     private Socket clientSocket;
@@ -30,13 +29,7 @@ public class GameClient extends MainGameMultiPlayer {
 
     public static void main(String[] args) {
         GameClient client = new GameClient();
-        System.out.print("Type in ip address: ");
-        Scanner s = new Scanner(System.in);
-        String address = s.nextLine();
-        System.out.print("Type in port: ");
-        int port = s.nextInt();
-        s.close();
-        client.startConnection(address, port);
+        client.startConnection(Config.ip, Config.port);
         client.setUpGame(true);
         client.processInput();
     }

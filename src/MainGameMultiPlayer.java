@@ -12,9 +12,8 @@ public class MainGameMultiPlayer {
     private GUI user; // board for user
     private GUI other; // board for other player
     JFrame window;
-    private final int DAS = 150;
-    
-    protected final int port = 100;
+    private final int DAS = Config.DAS;
+
     int seed = 0;
     private boolean isFirst = true;
     private boolean isPlaying = false;
@@ -84,7 +83,7 @@ public class MainGameMultiPlayer {
 
             pressed.add(e.getKeyCode());
             switch (e.getKeyCode()){
-                case KeyEvent.VK_RIGHT -> {
+                case Config.right -> {
                     DASThread.interrupt();
                     if(isPlaying) {
                         user.board.moveR();
@@ -93,7 +92,7 @@ public class MainGameMultiPlayer {
                     DASThread = new Thread(rightDAS);
                     DASThread.start();
                 }
-                case KeyEvent.VK_LEFT -> {
+                case Config.left -> {
                     DASThread.interrupt();
                     if (isPlaying) {
                         user.board.moveL();
@@ -106,15 +105,15 @@ public class MainGameMultiPlayer {
 
             if(isPlaying) {
                 switch (e.getKeyCode()) {
-                    case KeyEvent.VK_SPACE -> user.board.hardDrop();
-                    case KeyEvent.VK_X -> user.board.clockwise();
-                    case KeyEvent.VK_Z -> user.board.counterclockwise();
-                    case KeyEvent.VK_A -> user.board.rotate180();
+                    case Config.hardDrop -> user.board.hardDrop();
+                    case Config.cw -> user.board.clockwise();
+                    case Config.ccw -> user.board.counterclockwise();
+                    case Config.flip -> user.board.rotate180();
                     case KeyEvent.VK_D -> user.board.displayGame();
-                    case KeyEvent.VK_DOWN -> user.board.softDrop();
-                    case KeyEvent.VK_SHIFT -> user.board.hold();
+                    case Config.softDrop -> user.board.softDrop();
+                    case Config.hold -> user.board.hold();
                 }
-                if(pressed.contains(KeyEvent.VK_DOWN)){
+                if(pressed.contains(Config.softDrop)){
                     user.board.softDrop();
                 }
                 moveRotate();
@@ -127,10 +126,10 @@ public class MainGameMultiPlayer {
         @Override
         public synchronized void keyReleased(KeyEvent e) {
             if(isPlaying) {
-                if (e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")) {
+                if (e.getKeyCode() == Config.right && dasSide.equals("right")) {
                     dasing = false;
                     DASThread.interrupt();
-                } else if (e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")) {
+                } else if (e.getKeyCode() == Config.left && dasSide.equals("left")) {
                     dasing = false;
                     DASThread.interrupt();
                 }

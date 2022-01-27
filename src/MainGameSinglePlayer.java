@@ -67,27 +67,30 @@ public class MainGameSinglePlayer {
 
             pressed.add(e.getKeyCode());
             switch (e.getKeyCode()) {
-                case KeyEvent.VK_SPACE -> game.board.hardDrop();
-                case KeyEvent.VK_X -> game.board.clockwise();
-                case KeyEvent.VK_Z -> game.board.counterclockwise();
-                case KeyEvent.VK_A -> game.board.rotate180();
-                case KeyEvent.VK_R -> game.board.reset(new Random().nextInt());
-                case KeyEvent.VK_RIGHT -> {
+                case Config.hardDrop -> game.board.hardDrop();
+                case Config.cw -> game.board.clockwise();
+                case Config.ccw -> game.board.counterclockwise();
+                case Config.flip -> game.board.rotate180();
+                case Config.reset -> game.board.reset(new Random().nextInt());
+                case Config.right -> {
                     DASThread.interrupt();
                     game.board.moveR();
                     dasSide = "right";
                     DASThread = new Thread(rightDAS);
                     DASThread.start();
                 }
-                case KeyEvent.VK_LEFT -> {
+                case Config.left -> {
                     DASThread.interrupt();
                     game.board.moveL();
                     dasSide = "left";
                     DASThread = new Thread(leftDAS);
                     DASThread.start();
                 }
-                case KeyEvent.VK_DOWN -> game.board.softDrop();
-                case KeyEvent.VK_SHIFT -> game.board.hold();
+                case Config.softDrop -> game.board.softDrop();
+                case Config.hold -> game.board.hold();
+            }
+            if(pressed.contains(Config.softDrop)){
+                game.board.softDrop();
             }
             moveRotate();
 
@@ -99,10 +102,10 @@ public class MainGameSinglePlayer {
 
         @Override
         public synchronized void keyReleased(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT && dasSide.equals("right")) {
+            if (e.getKeyCode() == Config.right && dasSide.equals("right")) {
                 dasing = false;
                 DASThread.interrupt();
-            } else if (e.getKeyCode() == KeyEvent.VK_LEFT && dasSide.equals("left")) {
+            } else if (e.getKeyCode() == Config.left && dasSide.equals("left")) {
                 dasing = false;
                 DASThread.interrupt();
             }
@@ -123,6 +126,7 @@ public class MainGameSinglePlayer {
     public static void main(String[] args) {
         window = new JFrame();
         game = new GUI(new Board(new Random().nextInt(), true, true));
+        game.board.reset(new Random().nextInt());
         game.update();
         window.add(game);
         window.setSize(game.getPreferredSize());
